@@ -17,3 +17,11 @@ class ImageUploadResponse(BaseModel):
     filename: str
     content_type: str
     created_at: datetime
+
+
+class ImageListItemResponse(BaseModel):
+    id: int
+    filename: str
+    content_type: str
+    created_at: datetime
+    image_url: str
