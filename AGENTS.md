@@ -926,6 +926,18 @@ Keep API responsibilities clear.
 
 Avoid unnecessary layers unless the project requires them.
 
+## Running FastAPI Locally
+
+Run the backend server from the `backend` folder using:
+
+```bash
+
+uvicorn main:app --reload
+
+```
+
+The terminal is configured to use `backend/.venv` for this command. Do not run it from the project root.
+
 ---
 
 # Python Rules
