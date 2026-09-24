@@ -7,7 +7,7 @@ from database import Base
 
 
 class Image(Base):
-    __tablename__ = "images"
+    __tablename__ = "image"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     filename: Mapped[str] = mapped_column(String(255))
