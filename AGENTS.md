@@ -926,6 +926,14 @@ Keep API responsibilities clear.
 
 Avoid unnecessary layers unless the project requires them.
 
+## API Route Organization
+
+Keep every FastAPI endpoint inside `backend/routes/`.
+
+Keep `backend/main.py` limited to creating the FastAPI app, startup setup, and including routers.
+
+Create a new route file only when it groups related endpoints, such as image endpoints in `routes/images.py`.
+
 ## Running FastAPI Locally
 
 Run the backend server from the `backend` folder using:
