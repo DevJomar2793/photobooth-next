@@ -3,3 +3,4 @@ python-dotenv
 psycopg[binary]
 sqlalchemy
 uvicorn
+python-multipart

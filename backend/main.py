@@ -1,28 +1,19 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 
-from database import check_database_connection
-from schema import DatabaseConnectionResponse, MessageResponse
+from database import Base, engine
+from routes.health import router as health_router
+from routes.images import router as images_router
 
 app = FastAPI(title="Photobooth API")
 
+@app.on_event("startup")
+def create_database_tables() -> None:
+    if engine is not None:
+        Base.metadata.create_all(bind=engine)
 
-@app.get("/", response_model=MessageResponse)
-def read_root() -> MessageResponse:
-    return MessageResponse(message="Photobooth API is running.")
 
-
-@app.get("/database/connection", response_model=DatabaseConnectionResponse)
-def get_database_connection() -> DatabaseConnectionResponse:
-    if check_database_connection():
-        return DatabaseConnectionResponse(
-            connected=True,
-            message="Database connection successful.",
-        )
-
-    raise HTTPException(
-        status_code=503,
-        detail="Database connection failed. Check DATABASE_URL and PostgreSQL.",
-    )
+app.include_router(health_router)
+app.include_router(images_router)
 
 
 if __name__ == "__main__":
