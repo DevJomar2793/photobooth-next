@@ -1,207 +1,22 @@
 import Image from "next/image";
-import Link from "next/link";
 
+import SchoolBoothLayout from "../components/SchoolBoothLayout";
 import heroCamera from "../public/hero-camera.png";
 
 function CameraIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-6">
-      <path
-        d="M4 7.5h3l1.4-2h7.2l1.4 2h3A1.5 1.5 0 0 1 21.5 9v8.5A1.5 1.5 0 0 1 20 19H4a1.5 1.5 0 0 1-1.5-1.5V9A1.5 1.5 0 0 1 4 7.5Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="13" r="3.5" stroke="currentColor" strokeWidth="2" />
-    </svg>
-  );
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-6"><path d="M4 7.5h3l1.4-2h7.2l1.4 2h3A1.5 1.5 0 0 1 21.5 9v8.5A1.5 1.5 0 0 1 20 19H4a1.5 1.5 0 0 1-1.5-1.5V9A1.5 1.5 0 0 1 4 7.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /><circle cx="12" cy="13" r="3.5" stroke="currentColor" strokeWidth="2" /></svg>;
 }
 
 function MagicWandIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-7">
-      <path
-        d="m6 18 9-9"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <path
-        d="m5 19 2-2"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-      />
-      <path
-        d="m14 4 .5 1.5L16 6l-1.5.5L14 8l-.5-1.5L12 6l1.5-.5L14 4Z"
-        fill="currentColor"
-      />
-      <path
-        d="m19 10 .5 1.5L21 12l-1.5.5L19 14l-.5-1.5L17 12l1.5-.5L19 10Z"
-        fill="currentColor"
-      />
-    </svg>
-  );
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-7"><path d="m6 18 9-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /><path d="m5 19 2-2" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" /><path d="m14 4 .5 1.5L16 6l-1.5.5L14 8l-.5-1.5L12 6l1.5-.5L14 4Z" fill="currentColor" /><path d="m19 10 .5 1.5L21 12l-1.5.5L19 14l-.5-1.5L17 12l1.5-.5L19 10Z" fill="currentColor" /></svg>;
 }
 
 function DownloadIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-7">
-      <path
-        d="M12 3v11m0 0 4-4m-4 4-4-4"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M5 16.5V19h14v-2.5"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-7"><path d="M12 3v11m0 0 4-4m-4 4-4-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /><path d="M5 16.5V19h14v-2.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
 export default function Home() {
-  return (
-    <main className="min-h-dvh overflow-hidden bg-[#fdfdff] text-[#09245a] lg:flex lg:h-dvh lg:flex-col">
-      <div className="mx-auto flex max-w-[1600px] flex-col px-6 sm:px-10 lg:min-h-0 lg:flex-1 lg:px-16">
-        <header className="flex shrink-0 items-center justify-between py-6 lg:py-5">
-          <a
-            href="#home"
-            className="flex items-center gap-3"
-            aria-label="School Booth home"
-          >
-            <span className="flex size-12 items-center justify-center rounded-xl bg-[#09265c] text-white shadow-lg shadow-blue-950/10 sm:size-14">
-              <CameraIcon />
-            </span>
-            <span className="text-xl font-black tracking-[-0.07em] sm:text-2xl">
-              SCHOOL BOOTH
-            </span>
-          </a>
-          <nav
-            className="hidden items-center gap-3 text-lg font-semibold text-[#576a99] md:flex"
-            aria-label="Main navigation"
-          >
-            <a
-              href="#home"
-              className="rounded-full bg-[#dbeeff] px-8 py-3 text-[#09245a]"
-            >
-              Home
-            </a>
-            <Link
-              href="/gallery"
-              className="rounded-full px-6 py-3 transition hover:bg-blue-50 hover:text-[#09245a]"
-            >
-              Gallery
-            </Link>
-            <a
-              href="#about"
-              className="rounded-full px-6 py-3 transition hover:bg-blue-50 hover:text-[#09245a]"
-            >
-              About
-            </a>
-          </nav>
-        </header>
+  const homeFooter = <section className="relative bg-[#eaf5ff] px-6 pb-8 pt-14 sm:px-10 lg:shrink-0 lg:px-16 lg:py-8"><svg className="absolute inset-x-0 top-0 h-12 w-full -translate-y-px fill-[#fdfdff] lg:h-8" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0v41c187 62 369 42 539 17 214-31 364 35 545 9 154-22 239-42 356-18V0H0Z" /></svg><div className="mx-auto grid max-w-[1600px] gap-7 pt-2 md:grid-cols-3 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-center lg:gap-10 lg:pt-0"><div className="flex items-center gap-4 lg:border-r lg:border-[#bedcff] lg:pr-10"><span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-[#d4eaff] text-[#09245a]"><CameraIcon /></span><div><h2 className="font-extrabold">Take Photos</h2><p className="mt-1 text-sm text-[#5870a7]">Choose your favorite layout and strike a pose!</p></div></div><div className="flex items-center gap-4 lg:border-r lg:border-[#bedcff] lg:pr-10"><span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-[#d4eaff] text-[#09245a]"><MagicWandIcon /></span><div><h2 className="font-extrabold">Make It Unique</h2><p className="mt-1 text-sm text-[#5870a7]">Add fun frames and filters.</p></div></div><div className="flex items-center gap-4"><span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-[#d4eaff] text-[#09245a]"><DownloadIcon /></span><div><h2 className="font-extrabold">Get Your Photos</h2><p className="mt-1 text-sm text-[#5870a7]">Download instantly and keep your memories!</p></div></div><p className="border-t border-[#bedcff] pt-5 text-sm text-[#5870a7] lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">Developed by<br /><span className="text-xl font-black text-[#09245a]">DevJomar</span><br />© 2026</p></div></section>;
 
-        <section
-          id="home"
-          className="grid items-center gap-6 pb-10 pt-8 lg:min-h-0 lg:flex-1 lg:grid-cols-[0.92fr_1.08fr] lg:gap-10 lg:py-4"
-        >
-          <div className="relative z-10 max-w-xl lg:pb-8">
-            <p className="mb-5 text-sm font-extrabold tracking-[0.22em] text-[#6275a4] sm:text-base">
-              SNAP <span className="mx-1.5">•</span> SMILE{" "}
-              <span className="mx-1.5">•</span> CREATE MEMORIES
-            </p>
-            <h1 className="max-w-2xl text-5xl font-black leading-[0.93] tracking-[-0.07em] text-[#06245b] sm:text-6xl lg:text-7xl xl:text-8xl">
-              Capture
-              <br />
-              Good Vibes
-              <br />
-              Together!
-            </h1>
-            <p className="mt-6 max-w-md text-lg font-medium leading-snug text-[#6275a4] sm:text-xl">
-              Take photos, create memories,
-              <br className="hidden sm:block" /> and make every moment special!
-            </p>
-            <button
-              type="button"
-              className="mt-8 flex w-full max-w-md items-center justify-center gap-3 rounded-2xl bg-[#1261eb] px-6 py-4 text-xl font-bold text-white shadow-xl shadow-blue-500/25 transition hover:bg-[#0d54d3] sm:w-auto sm:min-w-96"
-            >
-              <CameraIcon />
-              Start Photo Booth
-              <span className="ml-2 text-3xl leading-none">›</span>
-            </button>
-          </div>
-          <div className="relative mx-auto w-full max-w-3xl lg:max-w-none">
-            <div className="absolute inset-x-[10%] bottom-[10%] h-[35%] rounded-[50%] bg-[#ffd7e4] blur-[1px]" />
-            <Image
-              src={heroCamera}
-              alt="A blue camera with cheerful photo prints"
-              priority
-              className="relative z-10 h-auto w-full drop-shadow-2xl lg:mx-auto lg:max-h-[52vh] lg:w-auto"
-            />
-          </div>
-        </section>
-      </div>
-
-      <section
-        className="relative bg-[#eaf5ff] px-6 pb-8 pt-14 sm:px-10 lg:shrink-0 lg:px-16 lg:py-8"
-        id="about"
-      >
-        <svg
-          className="absolute inset-x-0 top-0 h-12 w-full -translate-y-px fill-[#fdfdff] lg:h-8"
-          viewBox="0 0 1440 80"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <path d="M0 0v41c187 62 369 42 539 17 214-31 364 35 545 9 154-22 239-42 356-18V0H0Z" />
-        </svg>
-        <div className="mx-auto grid max-w-[1600px] gap-7 pt-2 md:grid-cols-3 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-center lg:gap-10 lg:pt-0">
-          <div className="flex items-center gap-4 lg:border-r lg:border-[#bedcff] lg:pr-10">
-            <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-[#d4eaff] text-[#09245a]">
-              <CameraIcon />
-            </span>
-            <div>
-              <h2 className="font-extrabold">Take Photos</h2>
-              <p className="mt-1 text-sm text-[#5870a7]">
-                Choose your favorite layout and strike a pose!
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 lg:border-r lg:border-[#bedcff] lg:pr-10">
-            <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-[#d4eaff] text-[#09245a]">
-              <MagicWandIcon />
-            </span>
-            <div>
-              <h2 className="font-extrabold">Make It Unique</h2>
-              <p className="mt-1 text-sm text-[#5870a7]">
-                Add fun frames and filters.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-[#d4eaff] text-[#09245a]">
-              <DownloadIcon />
-            </span>
-            <div>
-              <h2 className="font-extrabold">Get Your Photos</h2>
-              <p className="mt-1 text-sm text-[#5870a7]">
-                Download instantly and keep your memories!
-              </p>
-            </div>
-          </div>
-          <p className="border-t border-[#bedcff] pt-5 text-sm text-[#5870a7] lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
-            Developed by
-            <br />
-            <span className="text-xl font-black text-[#09245a]">DevJomar</span>
-            <br />© 2026
-          </p>
-        </div>
-      </section>
-    </main>
-  );
+  return <SchoolBoothLayout activePage="home" footer={homeFooter}><div className="mx-auto flex max-w-[1600px] flex-col px-6 sm:px-10 lg:min-h-0 lg:flex-1 lg:px-16"><section className="grid items-center gap-6 pb-10 pt-8 lg:min-h-0 lg:flex-1 lg:grid-cols-[0.92fr_1.08fr] lg:gap-10 lg:py-4"><div className="relative z-10 max-w-xl lg:pb-8"><p className="mb-5 text-sm font-extrabold tracking-[0.22em] text-[#6275a4] sm:text-base">SNAP <span className="mx-1.5">•</span> SMILE <span className="mx-1.5">•</span> CREATE MEMORIES</p><h1 className="max-w-2xl text-5xl font-black leading-[0.93] tracking-[-0.07em] text-[#06245b] sm:text-6xl lg:text-7xl xl:text-8xl">Capture<br />Good Vibes<br />Together!</h1><p className="mt-6 max-w-md text-lg font-medium leading-snug text-[#6275a4] sm:text-xl">Take photos, create memories,<br className="hidden sm:block" /> and make every moment special!</p><button type="button" className="mt-8 flex w-full max-w-md items-center justify-center gap-3 rounded-2xl bg-[#1261eb] px-6 py-4 text-xl font-bold text-white shadow-xl shadow-blue-500/25 transition hover:bg-[#0d54d3] sm:w-auto sm:min-w-96"><CameraIcon />Start Photo Booth<span className="ml-2 text-3xl leading-none">›</span></button></div><div className="relative mx-auto w-full max-w-3xl lg:max-w-none"><div className="absolute inset-x-[10%] bottom-[10%] h-[35%] rounded-[50%] bg-[#ffd7e4] blur-[1px]" /><Image src={heroCamera} alt="A blue camera with cheerful photo prints" priority className="relative z-10 h-auto w-full drop-shadow-2xl lg:mx-auto lg:max-h-[52vh] lg:w-auto" /></div></section></div></SchoolBoothLayout>;
 }
