@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-type PageName = "home" | "gallery" | "about";
+type PageName = "home" | "gallery" | "about" | "capture";
 
 interface SchoolBoothLayoutProps {
   activePage: PageName;

@@ -127,7 +127,7 @@ export default function GalleryContent() {
       <div className="min-w-0 lg:flex lg:min-h-0 lg:flex-col">
         <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-center">
           <div>
-            <h1 className="text-3xl font-black tracking-[-0.05em] sm:text-4xl">
+            <h1 className="text-3xl font-black tracking-lighter sm:text-4xl">
               ▣ Gallery
             </h1>
             <p className="mt-1 text-lg font-medium text-[#5c70a4]">
@@ -193,7 +193,7 @@ export default function GalleryContent() {
                 <button
                   type="button"
                   onClick={() => setSelectedId(photo.id)}
-                  className="relative block aspect-[3/4] w-full overflow-hidden bg-[#e8f3ff] text-left"
+                  className="relative block aspect-3/4 w-full overflow-hidden bg-[#e8f3ff] text-left"
                 >
                   <Image
                     src={photo.image}
@@ -243,7 +243,7 @@ export default function GalleryContent() {
         </p>
         {selectedPhoto ? (
           <>
-            <div className="relative mx-auto mt-4 aspect-[3/4] max-w-sm overflow-hidden rounded-xl border-4 border-white bg-[#dcecff] shadow-lg">
+            <div className="relative mx-auto mt-4 aspect-3/4 max-w-sm overflow-hidden rounded-xl border-4 border-white bg-[#dcecff] shadow-lg">
               <Image
                 src={selectedPhoto.image}
                 alt={`${selectedPhoto.title} preview`}
