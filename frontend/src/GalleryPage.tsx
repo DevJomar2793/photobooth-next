@@ -7,6 +7,18 @@ import goodVibesImage from './assets/gallery/good-vibes.png'
 import makeItSpecialImage from './assets/gallery/make-it-special.png'
 import schoolLifeImage from './assets/gallery/school-life.png'
 import schoolMemoriesImage from './assets/gallery/school-memories.png'
+import PageFooter from './components/PageFooter'
+import {
+  CalendarIcon,
+  CheckIcon,
+  DownloadIcon,
+  EyeIcon,
+  GalleryIcon,
+  ImageIcon,
+  InfoIcon,
+  SearchIcon,
+  TrashIcon,
+} from './components/icons'
 import './GalleryPage.css'
 
 interface GalleryPhoto {
@@ -19,10 +31,6 @@ interface GalleryPhoto {
   width: number
   height: number
   format: string
-}
-
-interface IconProps {
-  className?: string
 }
 
 const initialGalleryPhotos: GalleryPhoto[] = [
@@ -127,87 +135,6 @@ const templateOptions = [
   'Notebook',
   'Premium',
 ]
-
-function GalleryIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 42 42" fill="none" aria-hidden="true">
-      <rect x="4" y="6" width="34" height="30" rx="3" stroke="currentColor" strokeWidth="3" />
-      <circle cx="14" cy="16" r="3" fill="currentColor" />
-      <path d="m7 32 9-9 6 6 5-5 8 8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function SearchIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2.2" />
-      <path d="m16 16 5 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function CheckIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="m5 12 4 4L19 6" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function EyeIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 28 22" fill="none" aria-hidden="true">
-      <path d="M2 11s4-8 12-8 12 8 12 8-4 8-12 8S2 11 2 11Z" fill="currentColor" />
-      <circle cx="14" cy="11" r="4" fill="white" />
-      <circle cx="14" cy="11" r="2" fill="currentColor" />
-    </svg>
-  )
-}
-
-function CalendarIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
-      <path d="M7 3v4m10-4v4M3 10h18M8 14h2m4 0h2m-8 4h2m4 0h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function ImageIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
-      <circle cx="9" cy="9" r="2" fill="currentColor" />
-      <path d="m5 18 5-5 3 3 2-2 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function InfoIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
-      <path d="M12 11v6m0-10h.01" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function DownloadIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 3v12m0 0-5-5m5 5 5-5M4 17v4h16v-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function TrashIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M4 7h16M9 7V4h6v3m3 0-1 14H7L6 7m4 4v6m4-6v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
 
 function GalleryPage() {
   const [photos, setPhotos] = useState(initialGalleryPhotos)
@@ -450,15 +377,7 @@ function GalleryPage() {
         </div>
       </main>
 
-      <footer className="gallery-footer">
-        <svg className="gallery-footer-wave" viewBox="0 0 1440 72" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M0 24c168 66 312 5 494 37 182 31 284-24 469 1 170 24 306 4 477-38v48H0V24Z" />
-        </svg>
-        <div className="gallery-footer-content">
-          <span>© 2026 DevJomar. All rights reserved.</span>
-          <span>Capture Good Vibes! <span aria-hidden="true">♥</span></span>
-        </div>
-      </footer>
+      <PageFooter variant="gallery" />
     </>
   )
 }
