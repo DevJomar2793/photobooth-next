@@ -198,41 +198,238 @@ Prefer proper types.
 
 # React Rules
 
-Use functional components.
+## 1. Use Functional Components
 
-Prefer simple components:
+Use functional components with React hooks.
+
+Keep each component focused on one clear responsibility.
 
 ```tsx
-
-function UserCard({ user }: UserCardProps) {
-
-return (
-
-\<div>
-
-  \<h2>{user.name}\</h2>
-
-  \<p>{user.email}\</p>
-
-\</div>
-
-);
-
+interface User {
+  id: number;
+  name: string;
+  email: string;
 }
 
+interface UserCardProps {
+  user: User;
+}
+
+function UserCard({ user }: UserCardProps) {
+  return (
+    <article>
+      <h2>{user.name}</h2>
+      <p>{user.email}</p>
+    </article>
+  );
+}
 ```
 
-Avoid unnecessary:
+Split a component only when it becomes difficult to read, test, or reuse.
+Do not create a separate component for every small element.
+
+---
+
+## 2. Keep Props Simple and Typed
+
+Create a clear interface for component props.
+
+Prefer passing only the values a component needs:
+
+```tsx
+interface SaveButtonProps {
+  disabled: boolean;
+  onSave: () => void;
+}
+
+function SaveButton({ disabled, onSave }: SaveButtonProps) {
+  return (
+    <button type="button" disabled={disabled} onClick={onSave}>
+      Save
+    </button>
+  );
+}
+```
+
+Avoid large prop objects, complicated generic props, and `any`.
+
+---
+
+## 3. Use State Only When Needed
+
+Use `useState` for values that change and affect what the user sees.
+
+```tsx
+const [isOpen, setIsOpen] = useState(false);
+```
+
+Do not store a value in state when it can be calculated from existing props or state.
+
+Prefer:
+
+```tsx
+const fullName = `${firstName} ${lastName}`;
+```
+
+over keeping `fullName` in a separate state variable.
+
+Keep state close to the component that uses it. Move state upward only when multiple
+components genuinely need the same value.
+
+---
+
+## 4. Use Effects Carefully
+
+Use `useEffect` only when React needs to synchronize with something outside React,
+such as an API request, browser event, timer, or third-party library.
+
+Do not use `useEffect` for values that can be calculated during rendering.
+
+Always include the correct dependencies and clean up subscriptions, event listeners,
+and timers when needed.
+
+```tsx
+useEffect(() => {
+  const timerId = window.setInterval(refreshData, 30_000);
+
+  return () => window.clearInterval(timerId);
+}, []);
+```
+
+If an effect is difficult to understand, simplify the data flow before adding more effects.
+
+---
+
+## 5. Keep Event Handlers Clear
+
+Use descriptive handler names such as:
+
+```text
+handleSubmit
+handleDelete
+handlePhotoSelect
+```
+
+Keep short handlers inside the component. Move a handler to a simple helper function only
+when it contains enough logic to make the component hard to read.
+
+---
+
+## 6. Render Conditions and Lists Clearly
+
+Prefer simple early returns for loading and error states:
+
+```tsx
+if (isLoading) {
+  return <p>Loading photos...</p>;
+}
+
+if (error) {
+  return <p>Unable to load photos.</p>;
+}
+```
+
+Use `.map()` for small and normal web lists. Give each rendered item a stable key from
+the data, such as `item.id`. Do not use the array index when items can be added, removed,
+or reordered.
+
+---
+
+## 7. Keep Forms Straightforward
+
+Use controlled inputs when the component needs to read, validate, or submit the value.
+
+Keep the flow easy to follow:
+
+```text
+Input
+  ↓
+Validation
+  ↓
+Submit
+  ↓
+Success or Error Message
+```
+
+Show useful validation messages near the affected field. Disable repeated submissions
+while a request is in progress when appropriate.
+
+Do not add a form library unless the form is complex enough to justify it.
+
+---
+
+## 8. Handle Loading, Empty, and Error States
+
+Every component that loads data should consider:
+
+- Loading state
+- Successful state
+- Empty state
+- Error state
+
+Show simple, user-friendly messages. Do not expose raw server errors or sensitive details.
+
+---
+
+## 9. Use Accessible HTML
+
+Prefer semantic HTML elements such as `button`, `nav`, `main`, `section`, and `form`.
+
+Use a real `<button>` for actions and a real `<a>` element for navigation. Add useful
+alternative text to meaningful images. Associate form labels with their inputs.
+
+Make keyboard focus visible and ensure interactive elements can be used without a mouse.
+
+---
+
+## 10. Avoid Unnecessary React Abstractions
+
+Do not automatically add:
 
 - Custom hooks
-
 - Context providers
-
 - State management libraries
+- Render props
+- Higher-order components
+- `useMemo` or `useCallback`
+- Complicated component abstractions
 
-- Component abstractions
+Do not create a custom hook for logic used only once unless separating it makes the code
+significantly easier to understand or test.
 
-Do not create a custom hook for a small piece of logic that is only used once.
+Start with props and local state. Use Context only for genuinely shared values that would
+otherwise need to pass through many component levels.
+
+Only add memoization after identifying a real performance problem.
+
+---
+
+## 11. Modify Existing React Code Carefully
+
+Before changing a component:
+
+1. Read the component and the components it directly uses.
+2. Understand its props, state, and API calls.
+3. Reuse the project's existing components and styles.
+4. Make the smallest change that solves the problem.
+5. Check the loading, error, empty, and success states affected by the change.
+
+Do not rewrite an entire component to fix a small issue.
+
+---
+
+## 12. React Learning Rule
+
+When using a React feature that may be unfamiliar, briefly explain:
+
+```text
+What it is
+Why it is needed
+How it works in this component
+```
+
+Choose the simplest correct React solution that a Junior Developer can read, debug,
+modify, and maintain.
 
 ---
 
