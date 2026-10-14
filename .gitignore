@@ -6,6 +6,10 @@ backend/venv/
 __pycache__/
 *.py[cod]
 
+# macOS metadata files
+.DS_Store
+**/.DS_Store
+
 # Local environment variables and credentials
 .env
 *.env
