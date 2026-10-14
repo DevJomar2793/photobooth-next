@@ -1,8 +1,18 @@
+import { useState } from 'react'
+import AboutPage from './AboutPage'
+import GalleryPage from './GalleryPage'
 import heroIllustration from './assets/school-booth-hero.png'
 import './App.css'
 
 interface IconProps {
   className?: string
+}
+
+type PageName = 'home' | 'gallery' | 'about'
+
+interface SiteHeaderProps {
+  activePage: PageName
+  onNavigate: (page: PageName) => void
 }
 
 function CameraIcon({ className }: IconProps) {
@@ -18,7 +28,7 @@ function CameraIcon({ className }: IconProps) {
         fill="currentColor"
       />
       <circle cx="24" cy="24" r="10" fill="white" />
-      <circle cx="24" cy="24" r="6" fill="currentColor" />
+      <circle className="camera-lens" cx="24" cy="24" r="6" fill="currentColor" />
       <circle cx="39" cy="15" r="2" fill="white" />
     </svg>
   )
@@ -86,37 +96,93 @@ function ArrowIcon({ className }: IconProps) {
   )
 }
 
-function App() {
+function ExitIcon({ className }: IconProps) {
   return (
-    <div className="site-shell" id="home">
-      <header className="site-header">
-        <div className="header-inner">
-          <a className="brand" href="#home" aria-label="School Booth home">
-            <span className="brand-mark">
-              <CameraIcon className="brand-camera" />
-            </span>
+    <svg
+      className={className}
+      viewBox="0 0 28 28"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M12 4H5v20h7M16 8l6 6-6 6m6-6H9"
+        stroke="currentColor"
+        strokeWidth="2.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function SiteHeader({ activePage, onNavigate }: SiteHeaderProps) {
+  return (
+    <header className="site-header">
+      <div className="header-inner">
+        <button
+          className="brand"
+          type="button"
+          onClick={() => onNavigate('home')}
+          aria-label="School Booth home"
+        >
+          <span className="brand-mark">
+            <CameraIcon className="brand-camera" />
+          </span>
+          <span className="brand-copy">
             <span className="brand-name">School Booth</span>
-          </a>
+            {activePage !== 'home' && (
+              <span className="brand-tagline">Snap • Smile • Create Memories</span>
+            )}
+          </span>
+        </button>
 
-          <nav className="main-nav" aria-label="Main navigation">
-            <a className="nav-item nav-item-active" href="#home" aria-current="page">
-              Home
-            </a>
-            <span className="nav-item nav-item-disabled" aria-disabled="true">
-              Gallery
-            </span>
-            <span className="nav-item nav-item-disabled" aria-disabled="true">
-              About
-            </span>
-          </nav>
-
-          <button className="header-cta" type="button" disabled>
-            <CameraIcon className="button-camera" />
-            <span>Start Photo</span>
+        <nav className="main-nav" aria-label="Main navigation">
+          <button
+            className={`nav-item ${activePage === 'home' ? 'nav-item-active' : ''}`}
+            type="button"
+            onClick={() => onNavigate('home')}
+            aria-current={activePage === 'home' ? 'page' : undefined}
+          >
+            Home
           </button>
-        </div>
-      </header>
+          <button
+            className={`nav-item ${activePage === 'gallery' ? 'nav-item-active' : ''}`}
+            type="button"
+            onClick={() => onNavigate('gallery')}
+            aria-current={activePage === 'gallery' ? 'page' : undefined}
+          >
+            Gallery
+          </button>
+          <button
+            className={`nav-item ${activePage === 'about' ? 'nav-item-active' : ''}`}
+            type="button"
+            onClick={() => onNavigate('about')}
+            aria-current={activePage === 'about' ? 'page' : undefined}
+          >
+            About
+          </button>
+        </nav>
 
+        <div className="header-action-slot">
+          {activePage !== 'home' && (
+            <button
+              className="exit-booth-button"
+              type="button"
+              onClick={() => onNavigate('home')}
+            >
+              <ExitIcon className="exit-icon" />
+              <span>Exit Booth</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </header>
+  )
+}
+
+function HomePage() {
+  return (
+    <>
       <main className="hero-section">
         <div className="hero-inner">
           <section className="hero-copy" aria-labelledby="hero-title">
@@ -204,6 +270,32 @@ function App() {
           </div>
         </div>
       </footer>
+    </>
+  )
+}
+
+function App() {
+  const [activePage, setActivePage] = useState<PageName>('home')
+
+  function renderPage() {
+    if (activePage === 'gallery') {
+      return <GalleryPage />
+    }
+
+    if (activePage === 'about') {
+      return <AboutPage />
+    }
+
+    return <HomePage />
+  }
+
+  return (
+    <div
+      className={`site-shell ${activePage === 'gallery' ? 'gallery-site' : ''} ${activePage === 'about' ? 'about-site' : ''}`}
+      id={activePage}
+    >
+      <SiteHeader activePage={activePage} onNavigate={setActivePage} />
+      {renderPage()}
     </div>
   )
 }
