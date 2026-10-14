@@ -1,0 +1,174 @@
+.photo-template {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  padding: 12% 9% 19%;
+  border: 5px solid #fff;
+  border-radius: 8px;
+  background: #fff;
+  color: #071f5e;
+  box-shadow: 0 4px 12px rgba(12, 48, 98, 0.1);
+}
+
+.template-photo-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.template-photo-slot {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border-radius: 3px;
+  background: linear-gradient(145deg, #dbe3ee, #bfc9d7);
+  color: rgba(7, 31, 94, 0.32);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.template-photo-slot img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.template-title {
+  position: absolute;
+  right: 4%;
+  bottom: 3.5%;
+  left: 4%;
+  overflow: hidden;
+  font-family: "Comic Sans MS", "Avenir Next Rounded", cursive;
+  font-size: clamp(0.7rem, 1.2vw, 1.2rem);
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.template-decoration {
+  position: absolute;
+  z-index: 2;
+  font-size: clamp(0.8rem, 1.45vw, 1.45rem);
+  font-weight: 900;
+  line-height: 1;
+  filter: drop-shadow(1px 1px 0 #071f5e);
+}
+
+.template-decoration-1 {
+  top: 3%;
+  left: 3%;
+}
+
+.template-decoration-2 {
+  top: 4%;
+  right: 5%;
+}
+
+.template-decoration-3 {
+  right: 5%;
+  bottom: 14%;
+}
+
+.photo-template-classic {
+  background: #fff;
+}
+
+.photo-template-classic .template-decoration-1,
+.photo-template-notebook .template-decoration-1 {
+  color: #ffd334;
+}
+
+.photo-template-classic .template-decoration-2,
+.photo-template-best-friends .template-decoration,
+.photo-template-cute-doodles .template-decoration-2,
+.photo-template-colorful .template-decoration-1 {
+  color: #ff3e78;
+}
+
+.photo-template-best-friends {
+  background: linear-gradient(145deg, #ffeaf2, #ffcddd);
+}
+
+.photo-template-best-friends .template-title {
+  color: #ef2360;
+}
+
+.photo-template-school-life {
+  border-color: #267bc8;
+  background: linear-gradient(145deg, #238ce0, #0d4f9d);
+  color: white;
+}
+
+.photo-template-school-life .template-decoration,
+.photo-template-premium .template-decoration {
+  color: #ffd12f;
+}
+
+.photo-template-film-strip,
+.photo-template-premium {
+  border-color: #17191d;
+  background: #17191d;
+  color: white;
+}
+
+.photo-template-film-strip::before,
+.photo-template-film-strip::after {
+  position: absolute;
+  top: 9%;
+  bottom: 15%;
+  width: 4%;
+  content: "";
+  background: repeating-linear-gradient(to bottom, white 0 5%, transparent 5% 11%);
+}
+
+.photo-template-film-strip::before {
+  left: 1.5%;
+}
+
+.photo-template-film-strip::after {
+  right: 1.5%;
+}
+
+.photo-template-cute-doodles {
+  background: linear-gradient(145deg, #fffdf6, #f7e9d8);
+}
+
+.photo-template-cute-doodles .template-title {
+  white-space: normal;
+}
+
+.photo-template-colorful {
+  background: linear-gradient(135deg, #e9dbff, #ffddea 48%, #fff2bc);
+}
+
+.photo-template-notebook {
+  background:
+    linear-gradient(rgba(75, 181, 150, 0.17) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(75, 181, 150, 0.17) 1px, transparent 1px),
+    #e9fff7;
+  background-size: 12px 12px;
+}
+
+.photo-template-premium .template-title {
+  color: #f2bb39;
+}
+
+@media (max-width: 680px) {
+  .template-title {
+    font-size: clamp(0.78rem, 4vw, 1.1rem);
+  }
+
+  .template-decoration {
+    font-size: clamp(0.9rem, 5vw, 1.35rem);
+  }
+}

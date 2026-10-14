@@ -1,16 +1,16 @@
 interface PageFooterProps {
-  variant: 'about' | 'gallery'
+  variant: 'about' | 'booth' | 'gallery'
 }
 
 function PageFooter({ variant }: PageFooterProps) {
-  const isGallery = variant === 'gallery'
-  const footerClassName = isGallery ? 'gallery-footer' : 'about-footer'
-  const waveClassName = isGallery ? 'gallery-footer-wave' : 'about-footer-wave'
-  const contentClassName = isGallery
+  const usesCompactFooter = variant === 'gallery' || variant === 'booth'
+  const footerClassName = usesCompactFooter ? 'gallery-footer' : 'about-footer'
+  const waveClassName = usesCompactFooter ? 'gallery-footer-wave' : 'about-footer-wave'
+  const contentClassName = usesCompactFooter
     ? 'gallery-footer-content'
     : 'about-footer-inner'
-  const viewBox = isGallery ? '0 0 1440 72' : '0 0 1440 90'
-  const wavePath = isGallery
+  const viewBox = usesCompactFooter ? '0 0 1440 72' : '0 0 1440 90'
+  const wavePath = usesCompactFooter
     ? 'M0 24c168 66 312 5 494 37 182 31 284-24 469 1 170 24 306 4 477-38v48H0V24Z'
     : 'M0 30C180 112 317 28 507 65c204 39 278-35 476 1 180 33 300-3 457-38v62H0V30Z'
 
@@ -25,7 +25,7 @@ function PageFooter({ variant }: PageFooterProps) {
         <path d={wavePath} />
       </svg>
       <div className={contentClassName}>
-        {isGallery ? (
+        {usesCompactFooter ? (
           <>
             <span>© 2026 DevJomar. All rights reserved.</span>
             <span>Capture Good Vibes! <span aria-hidden="true">♥</span></span>

@@ -4,6 +4,7 @@ export type PageName = 'home' | 'gallery' | 'about'
 
 interface SiteHeaderProps {
   activePage: PageName
+  boothMode?: boolean
   onNavigate: (page: PageName) => void
 }
 
@@ -13,7 +14,7 @@ const navigationItems: { label: string; page: PageName }[] = [
   { label: 'About', page: 'about' },
 ]
 
-function SiteHeader({ activePage, onNavigate }: SiteHeaderProps) {
+function SiteHeader({ activePage, boothMode = false, onNavigate }: SiteHeaderProps) {
   return (
     <header className="site-header">
       <div className="header-inner">
@@ -28,7 +29,7 @@ function SiteHeader({ activePage, onNavigate }: SiteHeaderProps) {
           </span>
           <span className="brand-copy">
             <span className="brand-name">School Booth</span>
-            {activePage !== 'home' && (
+            {(activePage !== 'home' || boothMode) && (
               <span className="brand-tagline">Snap • Smile • Create Memories</span>
             )}
           </span>
@@ -49,7 +50,7 @@ function SiteHeader({ activePage, onNavigate }: SiteHeaderProps) {
         </nav>
 
         <div className="header-action-slot">
-          {activePage !== 'home' && (
+          {(activePage !== 'home' || boothMode) && (
             <button
               className="exit-booth-button"
               type="button"

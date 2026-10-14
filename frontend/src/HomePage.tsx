@@ -1,7 +1,11 @@
 import heroIllustration from './assets/school-booth-hero.png'
 import { ArrowIcon, CameraIcon, DownloadIcon, WandIcon } from './components/icons'
 
-function HomePage() {
+interface HomePageProps {
+  onStart: () => void
+}
+
+function HomePage({ onStart }: HomePageProps) {
   return (
     <>
       <main className="hero-section">
@@ -20,7 +24,7 @@ function HomePage() {
               <br />
               and make every moment special!
             </p>
-            <button className="primary-cta" type="button" disabled>
+            <button className="primary-cta" type="button" onClick={onStart}>
               <CameraIcon className="primary-camera" />
               <span>Start Photo Booth</span>
               <ArrowIcon className="primary-arrow" />

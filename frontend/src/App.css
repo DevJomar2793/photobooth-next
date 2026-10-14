@@ -159,7 +159,11 @@
   border: 0;
   font: inherit;
   opacity: 1;
-  cursor: not-allowed;
+  cursor: pointer;
+}
+
+.primary-cta:hover {
+  background: linear-gradient(92deg, #075fe9, #064ec7);
 }
 
 .hero-section {
