@@ -40,6 +40,16 @@ export function DownloadIcon({ className }: IconProps) {
   )
 }
 
+export function PrintIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 42 42" fill="none" aria-hidden="true">
+      <path d="M12 16V5h18v11M12 31H7V17h28v14h-5" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
+      <path d="M12 25h18v12H12z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
+      <circle cx="30" cy="21" r="1.5" fill="currentColor" />
+    </svg>
+  )
+}
+
 export function ArrowIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">

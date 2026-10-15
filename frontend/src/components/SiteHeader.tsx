@@ -5,6 +5,7 @@ export type PageName = 'home' | 'gallery' | 'about'
 interface SiteHeaderProps {
   activePage: PageName
   boothMode?: boolean
+  showNavigation?: boolean
   onNavigate: (page: PageName) => void
 }
 
@@ -14,10 +15,15 @@ const navigationItems: { label: string; page: PageName }[] = [
   { label: 'About', page: 'about' },
 ]
 
-function SiteHeader({ activePage, boothMode = false, onNavigate }: SiteHeaderProps) {
+function SiteHeader({
+  activePage,
+  boothMode = false,
+  showNavigation = true,
+  onNavigate,
+}: SiteHeaderProps) {
   return (
     <header className="site-header">
-      <div className="header-inner">
+      <div className={`header-inner ${showNavigation ? '' : 'header-inner-without-nav'}`}>
         <button
           className="brand"
           type="button"
@@ -35,19 +41,21 @@ function SiteHeader({ activePage, boothMode = false, onNavigate }: SiteHeaderPro
           </span>
         </button>
 
-        <nav className="main-nav" aria-label="Main navigation">
-          {navigationItems.map((item) => (
-            <button
-              className={`nav-item ${activePage === item.page ? 'nav-item-active' : ''}`}
-              type="button"
-              onClick={() => onNavigate(item.page)}
-              aria-current={activePage === item.page ? 'page' : undefined}
-              key={item.page}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
+        {showNavigation && (
+          <nav className="main-nav" aria-label="Main navigation">
+            {navigationItems.map((item) => (
+              <button
+                className={`nav-item ${activePage === item.page ? 'nav-item-active' : ''}`}
+                type="button"
+                onClick={() => onNavigate(item.page)}
+                aria-current={activePage === item.page ? 'page' : undefined}
+                key={item.page}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        )}
 
         <div className="header-action-slot">
           {(activePage !== 'home' || boothMode) && (

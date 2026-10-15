@@ -25,6 +25,10 @@
   gap: 32px;
 }
 
+.header-inner.header-inner-without-nav {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
 .brand {
   width: max-content;
   padding: 0;
@@ -435,6 +439,10 @@
   .header-inner {
     grid-template-columns: 1fr auto 1fr;
     gap: 18px;
+  }
+
+  .header-inner.header-inner-without-nav {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .brand-mark {

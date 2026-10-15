@@ -8,14 +8,14 @@ interface PhotoTemplateProps {
 }
 
 const templateDecorations: Record<PhotoTemplateId, string[]> = {
-  classic: ['☺', '★', '♥'],
-  'best-friends': ['♥', '♕', '♥'],
-  'school-life': ['★', '✦', '★'],
-  'film-strip': ['✦', '★', '✦'],
-  'cute-doodles': ['✧', '♥', '📷'],
-  colorful: ['♥', '✦', '🌈'],
-  notebook: ['☻', '✦', '◆'],
-  premium: ['♕', '★', '✦'],
+  classic: ['☺', '♥', '★', '✦', '♛'],
+  'best-friends': ['♥', '♕', '♡', '✦', '♥'],
+  'school-life': ['✦', '★', '✧', '★', '✦'],
+  'film-strip': ['✦', '★', '✦', '◆', '★'],
+  'cute-doodles': ['✧', '♥', '✦', '♪', '♥'],
+  colorful: ['♥', '♡', '✦', '♥', '★'],
+  notebook: ['☺', '✦', '◆', '★', '✧'],
+  premium: ['♕', '★', '✦', '◆', '★'],
 }
 
 function PhotoTemplate({ photos, templateId, title }: PhotoTemplateProps) {
@@ -49,6 +49,10 @@ function PhotoTemplate({ photos, templateId, title }: PhotoTemplateProps) {
           {decoration}
         </span>
       ))}
+
+      <span className="template-tape template-tape-left" aria-hidden="true" />
+      <span className="template-tape template-tape-right" aria-hidden="true" />
+      <span className="template-camera-doodle" aria-hidden="true" />
 
       <strong className="template-title">{title}</strong>
     </div>

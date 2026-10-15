@@ -216,8 +216,11 @@
   font: inherit;
   font-size: 1.25rem;
   font-weight: 800;
-  opacity: 0.58;
-  cursor: not-allowed;
+  cursor: pointer;
+}
+
+.use-template-button:hover {
+  background: linear-gradient(135deg, #0767e8, #064dcc);
 }
 
 .use-template-button > span {

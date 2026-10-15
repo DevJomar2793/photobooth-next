@@ -3,12 +3,13 @@ import AboutPage from './AboutPage'
 import CapturePage from './CapturePage'
 import GalleryPage from './GalleryPage'
 import HomePage from './HomePage'
+import PreviewPage from './PreviewPage'
 import TemplatePage from './TemplatePage'
 import type { CapturedPhoto, PhotoTemplateId } from './PhotoBoothTypes'
 import SiteHeader, { type PageName } from './components/SiteHeader'
 import './App.css'
 
-type AppPage = PageName | 'capture' | 'templates'
+type AppPage = PageName | 'capture' | 'templates' | 'preview'
 
 function App() {
   const [activePage, setActivePage] = useState<AppPage>('home')
@@ -16,7 +17,10 @@ function App() {
   const [selectedTemplateId, setSelectedTemplateId] =
     useState<PhotoTemplateId>('classic')
 
-  const boothMode = activePage === 'capture' || activePage === 'templates'
+  const boothMode =
+    activePage === 'capture' ||
+    activePage === 'templates' ||
+    activePage === 'preview'
   const activeNavigationPage: PageName = boothMode ? 'home' : activePage
 
   function clearPhotoBoothSession() {
@@ -61,6 +65,17 @@ function App() {
     }
   }
 
+  function handleOpenPreview() {
+    if (capturedPhotos.length === 4) {
+      setActivePage('preview')
+    }
+  }
+
+  function handleRetakePhotos() {
+    clearPhotoBoothSession()
+    setActivePage('capture')
+  }
+
   function renderPage() {
     if (activePage === 'gallery') {
       return <GalleryPage />
@@ -90,6 +105,18 @@ function App() {
           selectedTemplateId={selectedTemplateId}
           onSelectTemplate={setSelectedTemplateId}
           onBack={() => setActivePage('capture')}
+          onUseTemplate={handleOpenPreview}
+        />
+      )
+    }
+
+    if (activePage === 'preview') {
+      return (
+        <PreviewPage
+          photos={capturedPhotos}
+          selectedTemplateId={selectedTemplateId}
+          onBack={() => setActivePage('templates')}
+          onRetake={handleRetakePhotos}
         />
       )
     }
@@ -111,6 +138,7 @@ function App() {
       <SiteHeader
         activePage={activeNavigationPage}
         boothMode={boothMode}
+        showNavigation={!boothMode}
         onNavigate={handleNavigate}
       />
       {renderPage()}

@@ -2,6 +2,7 @@ import PageFooter from './components/PageFooter'
 import PhotoTemplate from './components/PhotoTemplate'
 import { ArrowIcon, BackIcon, CheckIcon, EyeIcon } from './components/icons'
 import type { CapturedPhoto, PhotoTemplateId } from './PhotoBoothTypes'
+import { photoTemplateOptions } from './PhotoTemplateOptions'
 import './TemplatePage.css'
 
 interface TemplatePageProps {
@@ -9,34 +10,19 @@ interface TemplatePageProps {
   selectedTemplateId: PhotoTemplateId
   onSelectTemplate: (templateId: PhotoTemplateId) => void
   onBack: () => void
+  onUseTemplate: () => void
 }
-
-interface TemplateOption {
-  id: PhotoTemplateId
-  name: string
-  title: string
-}
-
-const templateOptions: TemplateOption[] = [
-  { id: 'classic', name: 'Classic', title: 'Good Vibes' },
-  { id: 'best-friends', name: 'Best Friends', title: 'Best Friends' },
-  { id: 'school-life', name: 'School Life', title: 'School Life' },
-  { id: 'film-strip', name: 'Film Strip', title: 'Good Memories' },
-  { id: 'cute-doodles', name: 'Cute Doodles', title: 'Capture Good Vibes!' },
-  { id: 'colorful', name: 'Colorful', title: 'Friends Forever' },
-  { id: 'notebook', name: 'Notebook', title: 'School Memories' },
-  { id: 'premium', name: 'Premium', title: 'Make It Special' },
-]
 
 function TemplatePage({
   photos,
   selectedTemplateId,
   onSelectTemplate,
   onBack,
+  onUseTemplate,
 }: TemplatePageProps) {
   const selectedTemplate =
-    templateOptions.find((template) => template.id === selectedTemplateId) ??
-    templateOptions[0]
+    photoTemplateOptions.find((template) => template.id === selectedTemplateId) ??
+    photoTemplateOptions[0]
 
   return (
     <>
@@ -55,7 +41,7 @@ function TemplatePage({
             </div>
 
             <div className="template-options-grid">
-              {templateOptions.map((template) => {
+              {photoTemplateOptions.map((template) => {
                 const isSelected = selectedTemplateId === template.id
 
                 return (
@@ -105,8 +91,7 @@ function TemplatePage({
             <button
               className="use-template-button"
               type="button"
-              disabled
-              title="Final photo preview will be added in a later step"
+              onClick={onUseTemplate}
             >
               <span><CheckIcon /></span>
               Use This Template
