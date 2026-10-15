@@ -1,0 +1,49 @@
+:root {
+  --navy: #062653;
+  --muted: #6478a4;
+  --blue: #0868f8;
+  font-family:
+    "Avenir Next Rounded", "Arial Rounded MT Bold", "Trebuchet MS", Arial,
+    sans-serif;
+  color: var(--navy);
+  background: #fff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid #f3bd00;
+  outline-offset: 4px;
+}
+
+button:disabled {
+  color: inherit;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
