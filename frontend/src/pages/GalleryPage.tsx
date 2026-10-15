@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import bestFriendsImage from './assets/gallery/best-friends.png'
-import captureGoodVibesImage from './assets/gallery/capture-good-vibes.png'
-import friendsForeverImage from './assets/gallery/friends-forever.png'
-import goodMemoriesImage from './assets/gallery/good-memories.png'
-import goodVibesImage from './assets/gallery/good-vibes.png'
-import makeItSpecialImage from './assets/gallery/make-it-special.png'
-import schoolLifeImage from './assets/gallery/school-life.png'
-import schoolMemoriesImage from './assets/gallery/school-memories.png'
-import PageFooter from './components/PageFooter'
+import bestFriendsImage from '../assets/gallery/best-friends.png'
+import captureGoodVibesImage from '../assets/gallery/capture-good-vibes.png'
+import friendsForeverImage from '../assets/gallery/friends-forever.png'
+import goodMemoriesImage from '../assets/gallery/good-memories.png'
+import goodVibesImage from '../assets/gallery/good-vibes.png'
+import makeItSpecialImage from '../assets/gallery/make-it-special.png'
+import schoolLifeImage from '../assets/gallery/school-life.png'
+import schoolMemoriesImage from '../assets/gallery/school-memories.png'
+import PageFooter from '../components/PageFooter'
 import {
   CalendarIcon,
   CheckIcon,
@@ -18,7 +18,7 @@ import {
   InfoIcon,
   SearchIcon,
   TrashIcon,
-} from './components/icons'
+} from '../components/icons'
 import './GalleryPage.css'
 
 interface GalleryPhoto {

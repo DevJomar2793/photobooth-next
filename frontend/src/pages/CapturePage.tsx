@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import heroIllustration from './assets/school-booth-hero.png'
-import PageFooter from './components/PageFooter'
+import heroIllustration from '../assets/school-booth-hero.png'
+import PageFooter from '../components/PageFooter'
 import {
   ArrowIcon,
   BackIcon,
@@ -11,8 +11,8 @@ import {
   LightbulbIcon,
   RefreshIcon,
   TrashIcon,
-} from './components/icons'
-import type { CapturedPhoto } from './PhotoBoothTypes'
+} from '../components/icons'
+import type { CapturedPhoto } from '../types/PhotoBoothTypes'
 import './CapturePage.css'
 
 type CameraStatus = 'requesting' | 'ready' | 'denied' | 'unavailable' | 'error'

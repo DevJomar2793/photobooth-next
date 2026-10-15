@@ -1,5 +1,5 @@
-import PageFooter from './components/PageFooter'
-import PhotoTemplate from './components/PhotoTemplate'
+import PageFooter from '../components/PageFooter'
+import PhotoTemplate from '../components/PhotoTemplate'
 import {
   BackIcon,
   DownloadIcon,
@@ -7,9 +7,9 @@ import {
   OutlineCameraIcon,
   PrintIcon,
   RefreshIcon,
-} from './components/icons'
-import type { CapturedPhoto, PhotoTemplateId } from './PhotoBoothTypes'
-import { photoTemplateOptions } from './PhotoTemplateOptions'
+} from '../components/icons'
+import type { CapturedPhoto, PhotoTemplateId } from '../types/PhotoBoothTypes'
+import { photoTemplateOptions } from '../data/PhotoTemplateOptions'
 import './PreviewPage.css'
 
 interface PreviewPageProps {

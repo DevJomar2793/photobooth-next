@@ -1,4 +1,4 @@
-import type { PhotoTemplateId } from './PhotoBoothTypes'
+import type { PhotoTemplateId } from '../types/PhotoBoothTypes'
 
 export interface PhotoTemplateOption {
   id: PhotoTemplateId

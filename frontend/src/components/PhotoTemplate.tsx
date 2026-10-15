@@ -1,4 +1,4 @@
-import type { CapturedPhoto, PhotoTemplateId } from '../PhotoBoothTypes'
+import type { CapturedPhoto, PhotoTemplateId } from '../types/PhotoBoothTypes'
 import './PhotoTemplate.css'
 
 interface PhotoTemplateProps {

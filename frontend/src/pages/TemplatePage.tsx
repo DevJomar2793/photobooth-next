@@ -1,8 +1,8 @@
-import PageFooter from './components/PageFooter'
-import PhotoTemplate from './components/PhotoTemplate'
-import { ArrowIcon, BackIcon, CheckIcon, EyeIcon } from './components/icons'
-import type { CapturedPhoto, PhotoTemplateId } from './PhotoBoothTypes'
-import { photoTemplateOptions } from './PhotoTemplateOptions'
+import PageFooter from '../components/PageFooter'
+import PhotoTemplate from '../components/PhotoTemplate'
+import { ArrowIcon, BackIcon, CheckIcon, EyeIcon } from '../components/icons'
+import type { CapturedPhoto, PhotoTemplateId } from '../types/PhotoBoothTypes'
+import { photoTemplateOptions } from '../data/PhotoTemplateOptions'
 import './TemplatePage.css'
 
 interface TemplatePageProps {
