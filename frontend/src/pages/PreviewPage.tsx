@@ -12,6 +12,7 @@ import {
 } from "../components/icons";
 import type { CapturedPhoto, PhotoTemplateId } from "../types/PhotoBoothTypes";
 import { photoTemplateOptions } from "../data/PhotoTemplateOptions";
+import { API_URL } from "../config";
 import "./PreviewPage.css";
 
 interface PreviewPageProps {
@@ -113,7 +114,7 @@ function PreviewPage({
 
       formData.append("file", imageFile);
 
-      const response = await fetch("/api/upload-image", {
+      const response = await fetch(`${API_URL}/upload-image`, {
         method: "POST",
         body: formData,
       });

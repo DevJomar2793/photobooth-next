@@ -12,6 +12,7 @@ import {
   TrashIcon,
 } from "../components/icons";
 import { photoTemplateOptions } from "../data/PhotoTemplateOptions";
+import { API_URL } from "../config";
 import "./GalleryPage.css";
 
 interface ImageListItemResponse {
@@ -73,7 +74,7 @@ function createGalleryPhoto(image: ImageListItemResponse): GalleryPhoto {
     title: template?.title ?? fallbackTitle,
     template: template?.name ?? "Unknown",
     date: formatPhotoDate(image.created_at),
-    image: `/api${image.image_url}`,
+    image: `${API_URL}${image.image_url}`,
     fileName: image.filename,
     width: 543,
     height: 724,
@@ -104,7 +105,7 @@ function GalleryPage() {
       setLoadError("");
 
       try {
-        const response = await fetch("/api/list-of-image", {
+        const response = await fetch(`${API_URL}/list-of-image`, {
           signal: controller.signal,
         });
 

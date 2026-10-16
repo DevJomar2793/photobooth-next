@@ -1,10 +1,23 @@
+import os
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from database import Base, engine
 from routes.health import router as health_router
 from routes.images import router as images_router
 
 app = FastAPI(title="Photobooth API")
+
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[FRONTEND_URL],
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def create_database_tables() -> None:
