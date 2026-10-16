@@ -58,7 +58,7 @@ function SiteHeader({
         )}
 
         <div className="header-action-slot">
-          {(activePage !== 'home' || boothMode) && (
+          {boothMode && (
             <button
               className="exit-booth-button"
               type="button"
