@@ -1,6 +1,6 @@
 fastapi
 python-dotenv
-psycopg[binary]
+psycopg2-binary
 sqlalchemy
 uvicorn
 python-multipart

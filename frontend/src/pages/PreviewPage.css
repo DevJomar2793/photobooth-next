@@ -188,6 +188,34 @@
   cursor: not-allowed;
 }
 
+.final-preview-save-button:not(:disabled) {
+  cursor: pointer;
+}
+
+.final-preview-save-button:not(:disabled):hover {
+  background: #dceeff;
+}
+
+.final-preview-save-button.is-saved {
+  border-color: #9bd6ae;
+  background: #e7f8ec;
+  color: #176b38;
+  opacity: 1;
+}
+
+.final-preview-save-status {
+  min-height: 20px;
+  margin: 10px 2px 0;
+  color: #176b38;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.final-preview-save-status.is-error {
+  color: #b42318;
+}
+
 .final-preview-retake-button {
   cursor: pointer;
 }

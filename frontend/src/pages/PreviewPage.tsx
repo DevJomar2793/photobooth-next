@@ -1,3 +1,5 @@
+import { useRef, useState } from 'react'
+import { toBlob } from 'html-to-image'
 import PageFooter from '../components/PageFooter'
 import PhotoTemplate from '../components/PhotoTemplate'
 import {
@@ -19,15 +21,69 @@ interface PreviewPageProps {
   onRetake: () => void
 }
 
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+
 function PreviewPage({
   photos,
   selectedTemplateId,
   onBack,
   onRetake,
 }: PreviewPageProps) {
+  const photoTemplateRef = useRef<HTMLDivElement>(null)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+
   const selectedTemplate =
     photoTemplateOptions.find((template) => template.id === selectedTemplateId) ??
     photoTemplateOptions[0]
+
+  async function handleSaveToGallery() {
+    if (photoTemplateRef.current === null || saveStatus === 'saving' || saveStatus === 'saved') {
+      return
+    }
+
+    setSaveStatus('saving')
+
+    try {
+      await document.fonts.ready
+
+      const imageBlob = await toBlob(photoTemplateRef.current, {
+        canvasWidth: 543,
+        canvasHeight: 724,
+        pixelRatio: 1,
+      })
+
+      if (imageBlob === null) {
+        throw new Error('Unable to create the image.')
+      }
+
+      const timestamp = new Date().toISOString().replaceAll(':', '-')
+      const fileName = `${selectedTemplate.id}-${timestamp}.png`
+      const imageFile = new File([imageBlob], fileName, { type: 'image/png' })
+      const formData = new FormData()
+
+      formData.append('file', imageFile)
+
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Unable to upload the image.')
+      }
+
+      setSaveStatus('saved')
+    } catch {
+      setSaveStatus('error')
+    }
+  }
+
+  const saveMessage = {
+    idle: '',
+    saving: 'Saving your photo...',
+    saved: 'Your photo was saved to the gallery.',
+    error: 'Unable to save your photo. Please try again.',
+  }[saveStatus]
 
   return (
     <>
@@ -51,6 +107,7 @@ function PreviewPage({
                 photos={photos}
                 templateId={selectedTemplate.id}
                 title={selectedTemplate.title}
+                elementRef={photoTemplateRef}
               />
             </div>
           </section>
@@ -75,14 +132,28 @@ function PreviewPage({
                 Download Image
               </button>
               <button
-                className="final-preview-button"
+                className={`final-preview-button final-preview-save-button ${
+                  saveStatus === 'saved' ? 'is-saved' : ''
+                }`}
                 type="button"
-                disabled
-                title="Saving to the gallery will be added in a later step"
+                onClick={handleSaveToGallery}
+                disabled={saveStatus === 'saving' || saveStatus === 'saved'}
               >
                 <GalleryIcon />
-                Save to Gallery
+                {saveStatus === 'saving'
+                  ? 'Saving...'
+                  : saveStatus === 'saved'
+                    ? 'Saved to Gallery'
+                    : 'Save to Gallery'}
               </button>
+              <p
+                className={`final-preview-save-status ${
+                  saveStatus === 'error' ? 'is-error' : ''
+                }`}
+                aria-live="polite"
+              >
+                {saveMessage}
+              </p>
             </section>
 
             <section className="final-preview-action-section">
