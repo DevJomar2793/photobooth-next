@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import PageFooter from '../components/PageFooter'
+import { useEffect, useState } from "react";
+import PageFooter from "../components/PageFooter";
 import {
   CalendarIcon,
   CheckIcon,
@@ -10,181 +10,219 @@ import {
   InfoIcon,
   SearchIcon,
   TrashIcon,
-} from '../components/icons'
-import { photoTemplateOptions } from '../data/PhotoTemplateOptions'
-import './GalleryPage.css'
+} from "../components/icons";
+import { photoTemplateOptions } from "../data/PhotoTemplateOptions";
+import "./GalleryPage.css";
 
 interface ImageListItemResponse {
-  id: number
-  filename: string
-  content_type: string
-  created_at: string
-  image_url: string
+  id: number;
+  filename: string;
+  content_type: string;
+  created_at: string;
+  image_url: string;
 }
 
 interface GalleryPhoto {
-  id: number
-  title: string
-  template: string
-  date: string
-  image: string
-  fileName: string
-  width: number
-  height: number
-  format: string
+  id: number;
+  title: string;
+  template: string;
+  date: string;
+  image: string;
+  fileName: string;
+  width: number;
+  height: number;
+  format: string;
 }
 
 const templateOptions = [
-  'All Photos',
-  'Classic',
-  'Best Friends',
-  'School Life',
-  'Film Strip',
-  'Cute Doodles',
-  'Colorful',
-  'Notebook',
-  'Premium',
-]
+  "All Photos",
+  "Classic",
+  "Best Friends",
+  "School Life",
+  "Film Strip",
+  "Cute Doodles",
+  "Colorful",
+  "Notebook",
+  "Premium",
+];
 
 function formatPhotoDate(createdAt: string) {
-  const date = new Date(createdAt)
+  const date = new Date(createdAt);
 
   if (Number.isNaN(date.getTime())) {
-    return createdAt
+    return createdAt;
   }
 
   return new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date)
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
 }
 
 function createGalleryPhoto(image: ImageListItemResponse): GalleryPhoto {
   const template = photoTemplateOptions.find((option) =>
     image.filename.startsWith(`${option.id}-`),
-  )
+  );
   const fallbackTitle = image.filename
-    .replace(/\.[^.]+$/, '')
-    .replaceAll('-', ' ')
-  const format = image.content_type.split('/')[1]?.toUpperCase() ?? 'IMAGE'
+    .replace(/\.[^.]+$/, "")
+    .replaceAll("-", " ");
+  const format = image.content_type.split("/")[1]?.toUpperCase() ?? "IMAGE";
 
   return {
     id: image.id,
     title: template?.title ?? fallbackTitle,
-    template: template?.name ?? 'Unknown',
+    template: template?.name ?? "Unknown",
     date: formatPhotoDate(image.created_at),
     image: `/api${image.image_url}`,
     fileName: image.filename,
     width: 543,
     height: 724,
     format,
-  }
+  };
 }
 
 function GalleryPage() {
-  const [photos, setPhotos] = useState<GalleryPhoto[]>([])
-  const [activePhotoId, setActivePhotoId] = useState<number | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [templateFilter, setTemplateFilter] = useState('All Photos')
-  const [selectionMode, setSelectionMode] = useState(false)
-  const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<number>>(new Set())
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState('')
-  const [reloadCount, setReloadCount] = useState(0)
+  const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
+  const [activePhotoId, setActivePhotoId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [templateFilter, setTemplateFilter] = useState("All Photos");
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<number>>(
+    new Set(),
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [reloadCount, setReloadCount] = useState(0);
+  const [isDeleteNoticeOpen, setIsDeleteNoticeOpen] = useState(false);
+  const [isDeleteNoticeClosing, setIsDeleteNoticeClosing] = useState(false);
 
   useEffect(() => {
-    const controller = new AbortController()
+    const controller = new AbortController();
 
     async function loadPhotos() {
-      setIsLoading(true)
-      setLoadError('')
+      setIsLoading(true);
+      setLoadError("");
 
       try {
-        const response = await fetch('/api/list-of-image', {
+        const response = await fetch("/api/list-of-image", {
           signal: controller.signal,
-        })
+        });
 
         if (!response.ok) {
-          throw new Error('Unable to load images.')
+          throw new Error("Unable to load images.");
         }
 
-        const images: ImageListItemResponse[] = await response.json()
-        const galleryPhotos = images.map(createGalleryPhoto)
+        const images: ImageListItemResponse[] = await response.json();
+        const galleryPhotos = images.map(createGalleryPhoto);
 
-        setPhotos(galleryPhotos)
-        setActivePhotoId(galleryPhotos[0]?.id ?? null)
+        setPhotos(galleryPhotos);
+        setActivePhotoId(galleryPhotos[0]?.id ?? null);
       } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          return
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
         }
 
-        setPhotos([])
-        setActivePhotoId(null)
-        setLoadError('Unable to load your photos. Please try again.')
+        setPhotos([]);
+        setActivePhotoId(null);
+        setLoadError("Unable to load your photos. Please try again.");
       } finally {
         if (!controller.signal.aborted) {
-          setIsLoading(false)
+          setIsLoading(false);
         }
       }
     }
 
-    void loadPhotos()
+    void loadPhotos();
 
-    return () => controller.abort()
-  }, [reloadCount])
+    return () => controller.abort();
+  }, [reloadCount]);
 
-  const normalizedQuery = searchQuery.trim().toLowerCase()
+  useEffect(() => {
+    if (!isDeleteNoticeOpen) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsDeleteNoticeClosing(true);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isDeleteNoticeOpen]);
+
+  useEffect(() => {
+    if (!isDeleteNoticeClosing) {
+      return;
+    }
+
+    const timerId = window.setTimeout(() => {
+      setIsDeleteNoticeOpen(false);
+      setIsDeleteNoticeClosing(false);
+    }, 180);
+
+    return () => window.clearTimeout(timerId);
+  }, [isDeleteNoticeClosing]);
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
   const filteredPhotos = photos.filter((photo) => {
     const matchesTemplate =
-      templateFilter === 'All Photos' || photo.template === templateFilter
+      templateFilter === "All Photos" || photo.template === templateFilter;
     const matchesSearch =
       normalizedQuery.length === 0 ||
       photo.title.toLowerCase().includes(normalizedQuery) ||
       photo.template.toLowerCase().includes(normalizedQuery) ||
-      photo.date.toLowerCase().includes(normalizedQuery)
+      photo.date.toLowerCase().includes(normalizedQuery);
 
-    return matchesTemplate && matchesSearch
-  })
+    return matchesTemplate && matchesSearch;
+  });
 
   const activePhoto =
     filteredPhotos.find((photo) => photo.id === activePhotoId) ??
     filteredPhotos[0] ??
-    null
+    null;
 
   function togglePhotoSelection(photoId: number) {
     setSelectedPhotoIds((currentIds) => {
-      const nextIds = new Set(currentIds)
+      const nextIds = new Set(currentIds);
 
       if (nextIds.has(photoId)) {
-        nextIds.delete(photoId)
+        nextIds.delete(photoId);
       } else {
-        nextIds.add(photoId)
+        nextIds.add(photoId);
       }
 
-      return nextIds
-    })
+      return nextIds;
+    });
   }
 
   function handlePhotoClick(photoId: number) {
-    setActivePhotoId(photoId)
+    setActivePhotoId(photoId);
 
     if (selectionMode) {
-      togglePhotoSelection(photoId)
+      togglePhotoSelection(photoId);
     }
   }
 
   function handleSelectionMode() {
     setSelectionMode((currentMode) => {
       if (currentMode) {
-        setSelectedPhotoIds(new Set())
+        setSelectedPhotoIds(new Set());
       }
 
-      return !currentMode
-    })
+      return !currentMode;
+    });
   }
 
   function handleDeletePhoto() {
-    window.alert('This feature will soon to be added.')
+    setIsDeleteNoticeClosing(false);
+    setIsDeleteNoticeOpen(true);
+  }
+
+  function closeDeleteNotice() {
+    setIsDeleteNoticeClosing(true);
   }
 
   return (
@@ -228,7 +266,7 @@ function GalleryPage() {
                 </label>
 
                 <button
-                  className={`select-mode-button ${selectionMode ? 'is-active' : ''}`}
+                  className={`select-mode-button ${selectionMode ? "is-active" : ""}`}
                   type="button"
                   onClick={handleSelectionMode}
                   aria-pressed={selectionMode}
@@ -237,7 +275,9 @@ function GalleryPage() {
                     <CheckIcon />
                   </span>
                   <span>
-                    {selectionMode ? `Done (${selectedPhotoIds.size})` : 'Select'}
+                    {selectionMode
+                      ? `Done (${selectedPhotoIds.size})`
+                      : "Select"}
                   </span>
                 </button>
               </div>
@@ -255,51 +295,65 @@ function GalleryPage() {
                   <GalleryIcon />
                   <h2>Unable to load photos</h2>
                   <p>{loadError}</p>
-                  <button type="button" onClick={() => setReloadCount((count) => count + 1)}>
+                  <button
+                    type="button"
+                    onClick={() => setReloadCount((count) => count + 1)}
+                  >
                     Try Again
                   </button>
                 </div>
               ) : filteredPhotos.length > 0 ? (
                 <div className="photo-grid">
                   {filteredPhotos.map((photo) => {
-                    const isActive = activePhoto?.id === photo.id
+                    const isActive = activePhoto?.id === photo.id;
                     const isMarked = selectionMode
                       ? selectedPhotoIds.has(photo.id)
-                      : isActive
+                      : isActive;
 
                     return (
                       <article
-                        className={`photo-card ${isActive ? 'is-active' : ''}`}
+                        className={`photo-card ${isActive ? "is-active" : ""}`}
                         key={photo.id}
                       >
                         <button
                           className="photo-card-button"
                           type="button"
                           onClick={() => handlePhotoClick(photo.id)}
-                          aria-label={`${selectionMode ? 'Select' : 'Preview'} ${photo.title}`}
+                          aria-label={`${selectionMode ? "Select" : "Preview"} ${photo.title}`}
                           aria-pressed={selectionMode ? isMarked : undefined}
                         >
-                          <span className={`card-check ${isMarked ? 'is-checked' : ''}`}>
+                          <span
+                            className={`card-check ${isMarked ? "is-checked" : ""}`}
+                          >
                             {isMarked && <CheckIcon />}
                           </span>
-                          <img src={photo.image} alt={`${photo.title} photo strip`} />
+                          <img
+                            src={photo.image}
+                            alt={`${photo.title} photo strip`}
+                          />
                         </button>
                         <div className="photo-card-meta">
                           <time>{photo.date}</time>
-                          <span className="card-menu" aria-hidden="true">⋮</span>
+                          <span className="card-menu" aria-hidden="true">
+                            ⋮
+                          </span>
                         </div>
                       </article>
-                    )
+                    );
                   })}
                 </div>
               ) : (
                 <div className="gallery-empty-state">
                   <GalleryIcon />
-                  <h2>{photos.length === 0 ? 'No saved photos yet' : 'No photos found'}</h2>
+                  <h2>
+                    {photos.length === 0
+                      ? "No saved photos yet"
+                      : "No photos found"}
+                  </h2>
                   <p>
                     {photos.length === 0
-                      ? 'Save a photo from the photo booth to see it here.'
-                      : 'Try a different search or template filter.'}
+                      ? "Save a photo from the photo booth to see it here."
+                      : "Try a different search or template filter."}
                   </p>
                 </div>
               )}
@@ -318,21 +372,33 @@ function GalleryPage() {
             {activePhoto !== null ? (
               <>
                 <div className="preview-image-wrap">
-                  <img src={activePhoto.image} alt={`${activePhoto.title} enlarged preview`} />
+                  <img
+                    src={activePhoto.image}
+                    alt={`${activePhoto.title} enlarged preview`}
+                  />
                 </div>
 
                 <dl className="preview-details">
                   <div>
-                    <dt><CalendarIcon /> Date Taken</dt>
+                    <dt>
+                      <CalendarIcon /> Date Taken
+                    </dt>
                     <dd>{activePhoto.date}</dd>
                   </div>
                   <div>
-                    <dt><ImageIcon /> Template</dt>
+                    <dt>
+                      <ImageIcon /> Template
+                    </dt>
                     <dd>{activePhoto.template}</dd>
                   </div>
                   <div>
-                    <dt><InfoIcon /> Size</dt>
-                    <dd>{activePhoto.width} × {activePhoto.height} ({activePhoto.format})</dd>
+                    <dt>
+                      <InfoIcon /> Size
+                    </dt>
+                    <dd>
+                      {activePhoto.width} × {activePhoto.height} (
+                      {activePhoto.format})
+                    </dd>
                   </div>
                 </dl>
 
@@ -345,7 +411,11 @@ function GalleryPage() {
                     <DownloadIcon />
                     Download Image
                   </a>
-                  <button className="delete-button" type="button" onClick={handleDeletePhoto}>
+                  <button
+                    className="delete-button"
+                    type="button"
+                    onClick={handleDeletePhoto}
+                  >
                     <TrashIcon />
                     Delete
                   </button>
@@ -362,8 +432,54 @@ function GalleryPage() {
       </main>
 
       <PageFooter variant="gallery" />
+
+      {isDeleteNoticeOpen && (
+        <div
+          className={`notification-modal-backdrop modal-animated-backdrop ${
+            isDeleteNoticeClosing ? "is-closing" : ""
+          }`}
+          role="presentation"
+          onMouseDown={closeDeleteNotice}
+        >
+          <section
+            className="notification-modal notification-modal-info modal-animated-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-notice-title"
+            aria-describedby="delete-notice-message"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              className="notification-modal-close"
+              type="button"
+              onClick={closeDeleteNotice}
+              aria-label="Close notification"
+            >
+              ×
+            </button>
+
+            <div className="notification-modal-icon" aria-hidden="true">
+              <TrashIcon />
+            </div>
+
+            <h2 id="delete-notice-title">Delete Photo</h2>
+            <p id="delete-notice-message">
+              This feature will be implemented in a future update.
+            </p>
+
+            <button
+              className="notification-modal-button"
+              type="button"
+              onClick={closeDeleteNotice}
+              autoFocus
+            >
+              Okay
+            </button>
+          </section>
+        </div>
+      )}
     </>
-  )
+  );
 }
 
-export default GalleryPage
+export default GalleryPage;

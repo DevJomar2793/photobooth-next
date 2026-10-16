@@ -216,6 +216,14 @@
   color: #b42318;
 }
 
+.final-preview-print-button {
+  cursor: pointer;
+}
+
+.final-preview-print-button:hover {
+  background: #dceeff;
+}
+
 .final-preview-retake-button {
   cursor: pointer;
 }
@@ -300,4 +308,5 @@
   .final-preview-actions {
     padding: 18px 14px;
   }
+
 }
