@@ -1,12 +1,4 @@
-import { useState } from 'react'
-import bestFriendsImage from '../assets/gallery/best-friends.png'
-import captureGoodVibesImage from '../assets/gallery/capture-good-vibes.png'
-import friendsForeverImage from '../assets/gallery/friends-forever.png'
-import goodMemoriesImage from '../assets/gallery/good-memories.png'
-import goodVibesImage from '../assets/gallery/good-vibes.png'
-import makeItSpecialImage from '../assets/gallery/make-it-special.png'
-import schoolLifeImage from '../assets/gallery/school-life.png'
-import schoolMemoriesImage from '../assets/gallery/school-memories.png'
+import { useEffect, useState } from 'react'
 import PageFooter from '../components/PageFooter'
 import {
   CalendarIcon,
@@ -19,7 +11,16 @@ import {
   SearchIcon,
   TrashIcon,
 } from '../components/icons'
+import { photoTemplateOptions } from '../data/PhotoTemplateOptions'
 import './GalleryPage.css'
+
+interface ImageListItemResponse {
+  id: number
+  filename: string
+  content_type: string
+  created_at: string
+  image_url: string
+}
 
 interface GalleryPhoto {
   id: number
@@ -33,97 +34,6 @@ interface GalleryPhoto {
   format: string
 }
 
-const initialGalleryPhotos: GalleryPhoto[] = [
-  {
-    id: 1,
-    title: 'Good Vibes',
-    template: 'Classic',
-    date: 'Sep 23, 2026 10:15 AM',
-    image: goodVibesImage,
-    fileName: 'good-vibes.png',
-    width: 543,
-    height: 724,
-    format: 'PNG',
-  },
-  {
-    id: 2,
-    title: 'Best Friends',
-    template: 'Best Friends',
-    date: 'Sep 23, 2026 09:42 AM',
-    image: bestFriendsImage,
-    fileName: 'best-friends.png',
-    width: 543,
-    height: 724,
-    format: 'PNG',
-  },
-  {
-    id: 3,
-    title: 'School Life',
-    template: 'School Life',
-    date: 'Sep 22, 2026 04:18 PM',
-    image: schoolLifeImage,
-    fileName: 'school-life.png',
-    width: 543,
-    height: 724,
-    format: 'PNG',
-  },
-  {
-    id: 4,
-    title: 'Good Memories',
-    template: 'Film Strip',
-    date: 'Sep 22, 2026 11:03 AM',
-    image: goodMemoriesImage,
-    fileName: 'good-memories.png',
-    width: 543,
-    height: 724,
-    format: 'PNG',
-  },
-  {
-    id: 5,
-    title: 'Capture Good Vibes!',
-    template: 'Cute Doodles',
-    date: 'Sep 21, 2026 05:26 PM',
-    image: captureGoodVibesImage,
-    fileName: 'capture-good-vibes.png',
-    width: 543,
-    height: 724,
-    format: 'PNG',
-  },
-  {
-    id: 6,
-    title: 'Friends Forever',
-    template: 'Colorful',
-    date: 'Sep 21, 2026 03:11 PM',
-    image: friendsForeverImage,
-    fileName: 'friends-forever.png',
-    width: 543,
-    height: 724,
-    format: 'PNG',
-  },
-  {
-    id: 7,
-    title: 'School Memories',
-    template: 'Notebook',
-    date: 'Sep 20, 2026 02:47 PM',
-    image: schoolMemoriesImage,
-    fileName: 'school-memories.png',
-    width: 543,
-    height: 724,
-    format: 'PNG',
-  },
-  {
-    id: 8,
-    title: 'Make It Special',
-    template: 'Premium',
-    date: 'Sep 20, 2026 12:01 PM',
-    image: makeItSpecialImage,
-    fileName: 'make-it-special.png',
-    width: 543,
-    height: 724,
-    format: 'PNG',
-  },
-]
-
 const templateOptions = [
   'All Photos',
   'Classic',
@@ -136,13 +46,92 @@ const templateOptions = [
   'Premium',
 ]
 
+function formatPhotoDate(createdAt: string) {
+  const date = new Date(createdAt)
+
+  if (Number.isNaN(date.getTime())) {
+    return createdAt
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)
+}
+
+function createGalleryPhoto(image: ImageListItemResponse): GalleryPhoto {
+  const template = photoTemplateOptions.find((option) =>
+    image.filename.startsWith(`${option.id}-`),
+  )
+  const fallbackTitle = image.filename
+    .replace(/\.[^.]+$/, '')
+    .replaceAll('-', ' ')
+  const format = image.content_type.split('/')[1]?.toUpperCase() ?? 'IMAGE'
+
+  return {
+    id: image.id,
+    title: template?.title ?? fallbackTitle,
+    template: template?.name ?? 'Unknown',
+    date: formatPhotoDate(image.created_at),
+    image: `/api${image.image_url}`,
+    fileName: image.filename,
+    width: 543,
+    height: 724,
+    format,
+  }
+}
+
 function GalleryPage() {
-  const [photos, setPhotos] = useState(initialGalleryPhotos)
-  const [activePhotoId, setActivePhotoId] = useState(1)
+  const [photos, setPhotos] = useState<GalleryPhoto[]>([])
+  const [activePhotoId, setActivePhotoId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [templateFilter, setTemplateFilter] = useState('All Photos')
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<number>>(new Set())
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const [reloadCount, setReloadCount] = useState(0)
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function loadPhotos() {
+      setIsLoading(true)
+      setLoadError('')
+
+      try {
+        const response = await fetch('/api/list-of-image', {
+          signal: controller.signal,
+        })
+
+        if (!response.ok) {
+          throw new Error('Unable to load images.')
+        }
+
+        const images: ImageListItemResponse[] = await response.json()
+        const galleryPhotos = images.map(createGalleryPhoto)
+
+        setPhotos(galleryPhotos)
+        setActivePhotoId(galleryPhotos[0]?.id ?? null)
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return
+        }
+
+        setPhotos([])
+        setActivePhotoId(null)
+        setLoadError('Unable to load your photos. Please try again.')
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void loadPhotos()
+
+    return () => controller.abort()
+  }, [reloadCount])
 
   const normalizedQuery = searchQuery.trim().toLowerCase()
   const filteredPhotos = photos.filter((photo) => {
@@ -195,27 +184,7 @@ function GalleryPage() {
   }
 
   function handleDeletePhoto() {
-    if (activePhoto === null) {
-      return
-    }
-
-    const shouldDelete = window.confirm(`Delete "${activePhoto.title}"?`)
-
-    if (!shouldDelete) {
-      return
-    }
-
-    const activeIndex = photos.findIndex((photo) => photo.id === activePhoto.id)
-    const remainingPhotos = photos.filter((photo) => photo.id !== activePhoto.id)
-    const nextPhoto = remainingPhotos[Math.min(activeIndex, remainingPhotos.length - 1)]
-
-    setPhotos(remainingPhotos)
-    setActivePhotoId(nextPhoto?.id ?? 0)
-    setSelectedPhotoIds((currentIds) => {
-      const nextIds = new Set(currentIds)
-      nextIds.delete(activePhoto.id)
-      return nextIds
-    })
+    window.alert('This feature will soon to be added.')
   }
 
   return (
@@ -275,7 +244,22 @@ function GalleryPage() {
             </div>
 
             <div className="gallery-grid-scroll">
-              {filteredPhotos.length > 0 ? (
+              {isLoading ? (
+                <div className="gallery-status-state" role="status">
+                  <GalleryIcon />
+                  <h2>Loading photos...</h2>
+                  <p>Please wait while your gallery is loaded.</p>
+                </div>
+              ) : loadError ? (
+                <div className="gallery-status-state" role="alert">
+                  <GalleryIcon />
+                  <h2>Unable to load photos</h2>
+                  <p>{loadError}</p>
+                  <button type="button" onClick={() => setReloadCount((count) => count + 1)}>
+                    Try Again
+                  </button>
+                </div>
+              ) : filteredPhotos.length > 0 ? (
                 <div className="photo-grid">
                   {filteredPhotos.map((photo) => {
                     const isActive = activePhoto?.id === photo.id
@@ -311,10 +295,10 @@ function GalleryPage() {
               ) : (
                 <div className="gallery-empty-state">
                   <GalleryIcon />
-                  <h2>{photos.length === 0 ? 'No photos left' : 'No photos found'}</h2>
+                  <h2>{photos.length === 0 ? 'No saved photos yet' : 'No photos found'}</h2>
                   <p>
                     {photos.length === 0
-                      ? 'Refresh the page to restore the demo gallery.'
+                      ? 'Save a photo from the photo booth to see it here.'
                       : 'Try a different search or template filter.'}
                   </p>
                 </div>

@@ -424,6 +424,7 @@
 }
 
 .gallery-empty-state,
+.gallery-status-state,
 .preview-empty-state {
   min-height: 280px;
   display: flex;
@@ -435,20 +436,40 @@
 }
 
 .gallery-empty-state svg,
+.gallery-status-state svg,
 .preview-empty-state svg {
   width: 54px;
   height: 54px;
   margin-bottom: 12px;
 }
 
-.gallery-empty-state h2 {
+.gallery-empty-state h2,
+.gallery-status-state h2 {
   margin: 0 0 6px;
   color: var(--navy);
 }
 
 .gallery-empty-state p,
+.gallery-status-state p,
 .preview-empty-state p {
   margin: 0;
+}
+
+.gallery-status-state button {
+  min-height: 44px;
+  margin-top: 18px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 9px;
+  background: #0868f8;
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.gallery-status-state button:hover {
+  background: #075bdb;
 }
 
 .gallery-footer {

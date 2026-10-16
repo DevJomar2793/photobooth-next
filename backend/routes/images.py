@@ -71,7 +71,7 @@ def get_images(db: Session = Depends(get_db)) -> list[ImageListItemResponse]:
             filename=image.filename,
             content_type=image.content_type,
             created_at=image.created_at,
-            image_url=f"/images/{image.id}",
+            image_url=f"/image/{image.id}",
         )
         for image in images
     ]
