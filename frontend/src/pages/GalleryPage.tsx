@@ -94,6 +94,8 @@ function GalleryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [reloadCount, setReloadCount] = useState(0);
+  const [previewPhotoId, setPreviewPhotoId] = useState<number | null>(null);
+  const [isPreviewClosing, setIsPreviewClosing] = useState(false);
   const [isDeleteNoticeOpen, setIsDeleteNoticeOpen] = useState(false);
   const [isDeleteNoticeClosing, setIsDeleteNoticeClosing] = useState(false);
 
@@ -137,6 +139,35 @@ function GalleryPage() {
 
     return () => controller.abort();
   }, [reloadCount]);
+
+  useEffect(() => {
+    if (previewPhotoId === null) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsPreviewClosing(true);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [previewPhotoId]);
+
+  useEffect(() => {
+    if (!isPreviewClosing) {
+      return;
+    }
+
+    const timerId = window.setTimeout(() => {
+      setPreviewPhotoId(null);
+      setIsPreviewClosing(false);
+    }, 180);
+
+    return () => window.clearTimeout(timerId);
+  }, [isPreviewClosing]);
 
   useEffect(() => {
     if (!isDeleteNoticeOpen) {
@@ -184,6 +215,8 @@ function GalleryPage() {
     filteredPhotos.find((photo) => photo.id === activePhotoId) ??
     filteredPhotos[0] ??
     null;
+  const previewPhoto =
+    photos.find((photo) => photo.id === previewPhotoId) ?? null;
 
   function togglePhotoSelection(photoId: number) {
     setSelectedPhotoIds((currentIds) => {
@@ -204,7 +237,19 @@ function GalleryPage() {
 
     if (selectionMode) {
       togglePhotoSelection(photoId);
+      return;
     }
+
+    setIsPreviewClosing(false);
+    setPreviewPhotoId(photoId);
+  }
+
+  function closePhotoPreview() {
+    if (previewPhotoId === null || isPreviewClosing) {
+      return;
+    }
+
+    setIsPreviewClosing(true);
   }
 
   function handleSelectionMode() {
@@ -433,6 +478,41 @@ function GalleryPage() {
       </main>
 
       <PageFooter variant="gallery" />
+
+      {previewPhoto !== null && (
+        <div
+          className={`gallery-photo-preview-backdrop modal-animated-backdrop ${
+            isPreviewClosing ? "is-closing" : ""
+          }`}
+          role="presentation"
+          onMouseDown={closePhotoPreview}
+        >
+          <section
+            className="gallery-photo-preview-dialog modal-animated-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gallery-photo-preview-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <h2 className="sr-only" id="gallery-photo-preview-title">
+              Preview {previewPhoto.title}
+            </h2>
+            <button
+              className="gallery-photo-preview-close"
+              type="button"
+              onClick={closePhotoPreview}
+              aria-label="Close photo preview"
+              autoFocus
+            >
+              ×
+            </button>
+            <img
+              src={previewPhoto.image}
+              alt={`${previewPhoto.title} enlarged preview`}
+            />
+          </section>
+        </div>
+      )}
 
       {isDeleteNoticeOpen && (
         <div
