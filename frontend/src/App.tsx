@@ -116,6 +116,7 @@ function App() {
           photos={capturedPhotos}
           selectedTemplateId={selectedTemplateId}
           onBack={() => setActivePage('templates')}
+          onOpenGallery={() => handleNavigate('gallery')}
           onRetake={handleRetakePhotos}
         />
       )

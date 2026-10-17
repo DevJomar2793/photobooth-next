@@ -19,6 +19,7 @@ interface PreviewPageProps {
   photos: CapturedPhoto[];
   selectedTemplateId: PhotoTemplateId;
   onBack: () => void;
+  onOpenGallery: () => void;
   onRetake: () => void;
 }
 
@@ -34,6 +35,7 @@ function PreviewPage({
   photos,
   selectedTemplateId,
   onBack,
+  onOpenGallery,
   onRetake,
 }: PreviewPageProps) {
   const photoTemplateRef = useRef<HTMLDivElement>(null);
@@ -216,14 +218,16 @@ function PreviewPage({
                   saveStatus === "saved" ? "is-saved" : ""
                 }`}
                 type="button"
-                onClick={handleSaveToGallery}
-                disabled={saveStatus === "saving" || saveStatus === "saved"}
+                onClick={
+                  saveStatus === "saved" ? onOpenGallery : handleSaveToGallery
+                }
+                disabled={saveStatus === "saving"}
               >
                 <GalleryIcon />
                 {saveStatus === "saving"
                   ? "Saving..."
                   : saveStatus === "saved"
-                    ? "Saved to Gallery"
+                    ? "Go to Gallery"
                     : "Save to Gallery"}
               </button>
               <p
