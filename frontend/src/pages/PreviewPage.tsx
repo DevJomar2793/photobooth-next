@@ -10,9 +10,9 @@ import {
   PrintIcon,
   RefreshIcon,
 } from "../components/icons";
+import { uploadImage } from "../api/images";
 import type { CapturedPhoto, PhotoTemplateId } from "../types/PhotoBoothTypes";
 import { photoTemplateOptions } from "../data/PhotoTemplateOptions";
-import { API_URL } from "../config";
 import "./PreviewPage.css";
 
 interface PreviewPageProps {
@@ -112,18 +112,8 @@ function PreviewPage({
       const timestamp = new Date().toISOString().replaceAll(":", "-");
       const fileName = `${selectedTemplate.id}-${timestamp}.png`;
       const imageFile = new File([imageBlob], fileName, { type: "image/png" });
-      const formData = new FormData();
 
-      formData.append("file", imageFile);
-
-      const response = await fetch(`${API_URL}/upload-image`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Unable to upload the image.");
-      }
+      await uploadImage(imageFile);
 
       setSaveStatus("saved");
       showNotification({
