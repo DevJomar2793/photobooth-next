@@ -3,7 +3,7 @@
   z-index: 2;
   flex: 1 1 auto;
   min-height: 0;
-  padding: 20px clamp(28px, 3.4vw, 54px) 70px;
+  padding: 20px clamp(28px, 3.4vw, 54px) 24px;
 }
 
 .template-layout {
@@ -264,7 +264,7 @@
 @media (max-width: 900px) {
   .template-main {
     padding-top: 34px;
-    padding-bottom: 110px;
+    padding-bottom: 32px;
   }
 
   .template-layout {
