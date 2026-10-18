@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import heroIllustration from './assets/school-booth-hero.png'
-import PageFooter from './components/PageFooter'
+import heroIllustration from '../assets/school-booth-hero.png'
+import PageFooter from '../components/PageFooter'
 import {
   ArrowIcon,
   BackIcon,
@@ -11,8 +11,8 @@ import {
   LightbulbIcon,
   RefreshIcon,
   TrashIcon,
-} from './components/icons'
-import type { CapturedPhoto } from './PhotoBoothTypes'
+} from '../components/icons'
+import type { CapturedPhoto } from '../types/PhotoBoothTypes'
 import './CapturePage.css'
 
 type CameraStatus = 'requesting' | 'ready' | 'denied' | 'unavailable' | 'error'
@@ -40,12 +40,22 @@ function CapturePage({
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const modalCloseTimerRef = useRef<number | null>(null)
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>('requesting')
   const [retryKey, setRetryKey] = useState(0)
   const [timerSeconds, setTimerSeconds] = useState(0)
   const [countdown, setCountdown] = useState<number | null>(null)
   const [isTakingPhoto, setIsTakingPhoto] = useState(false)
   const [previewSelection, setPreviewSelection] = useState<PreviewSelection>(null)
+  const [isPreviewClosing, setIsPreviewClosing] = useState(false)
+
+  useEffect(() => {
+    return () => {
+      if (modalCloseTimerRef.current !== null) {
+        window.clearTimeout(modalCloseTimerRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     let isActive = true
@@ -173,16 +183,40 @@ function CapturePage({
   }
 
   function handleDelete(photoId: number) {
-    onDeletePhoto(photoId)
-
     if (previewSelection === photoId) {
-      setPreviewSelection(null)
+      closePreview(() => onDeletePhoto(photoId))
+      return
     }
+
+    onDeletePhoto(photoId)
   }
 
   function handleClearPhotos() {
+    if (previewSelection !== null) {
+      closePreview(onClearPhotos)
+      return
+    }
+
     onClearPhotos()
-    setPreviewSelection(null)
+  }
+
+  function openPreview(selection: Exclude<PreviewSelection, null>) {
+    setIsPreviewClosing(false)
+    setPreviewSelection(selection)
+  }
+
+  function closePreview(afterClose?: () => void) {
+    if (previewSelection === null || isPreviewClosing) {
+      return
+    }
+
+    setIsPreviewClosing(true)
+    modalCloseTimerRef.current = window.setTimeout(() => {
+      setPreviewSelection(null)
+      setIsPreviewClosing(false)
+      modalCloseTimerRef.current = null
+      afterClose?.()
+    }, 180)
   }
 
   const previewPhotos =
@@ -278,7 +312,7 @@ function CapturePage({
                 <button
                   className="preview-all-button"
                   type="button"
-                  onClick={() => setPreviewSelection('all')}
+                  onClick={() => openPreview('all')}
                   disabled={photos.length === 0}
                 >
                   <EyeIcon />
@@ -318,7 +352,7 @@ function CapturePage({
                             <span>{index + 1}</span>
                           </div>
                           <div className="captured-card-actions">
-                            <button type="button" onClick={() => setPreviewSelection(photo.id)}>
+                            <button type="button" onClick={() => openPreview(photo.id)}>
                               <EyeIcon />
                               Preview
                             </button>
@@ -363,9 +397,15 @@ function CapturePage({
       <PageFooter variant="booth" />
 
       {previewSelection !== null && (
-        <div className="photo-preview-backdrop" role="presentation" onMouseDown={() => setPreviewSelection(null)}>
+        <div
+          className={`photo-preview-backdrop modal-animated-backdrop ${
+            isPreviewClosing ? 'is-closing' : ''
+          }`}
+          role="presentation"
+          onMouseDown={() => closePreview()}
+        >
           <section
-            className="photo-preview-dialog"
+            className="photo-preview-dialog modal-animated-content"
             role="dialog"
             aria-modal="true"
             aria-labelledby="photo-preview-title"
@@ -376,7 +416,7 @@ function CapturePage({
                 <h2 id="photo-preview-title"><EyeIcon /> Preview Photos ({previewPhotos.length})</h2>
                 <p>Review your captured photos before proceeding.</p>
               </div>
-              <button type="button" onClick={() => setPreviewSelection(null)} aria-label="Close preview">×</button>
+              <button type="button" onClick={() => closePreview()} aria-label="Close preview">×</button>
             </div>
 
             <div className={`photo-preview-grid ${previewPhotos.length === 1 ? 'is-single' : ''}`}>
@@ -400,7 +440,7 @@ function CapturePage({
                 <RefreshIcon />
                 Retake All
               </button>
-              <button type="button" onClick={() => setPreviewSelection(null)}>
+              <button type="button" onClick={() => closePreview()}>
                 Done
               </button>
             </div>

@@ -20,7 +20,7 @@ DATABASE_URL = None
 
 if all([DATABASE_HOST, DATABASE_NAME, DATABASE_USER, DATABASE_PASSWORD]):
     DATABASE_URL = URL.create(
-        drivername="postgresql+psycopg",
+        drivername="postgresql+psycopg2",
         username=DATABASE_USER,
         password=DATABASE_PASSWORD,
         host=DATABASE_HOST,

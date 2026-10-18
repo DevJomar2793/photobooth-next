@@ -1,5 +1,5 @@
-import aboutHeroImage from './assets/about/about-hero.png'
-import PageFooter from './components/PageFooter'
+import aboutHeroImage from '../assets/about/about-hero.png'
+import PageFooter from '../components/PageFooter'
 import {
   DownloadIcon,
   GridIcon,
@@ -8,7 +8,7 @@ import {
   OutlineCameraIcon,
   ShieldIcon,
   StudentsIcon,
-} from './components/icons'
+} from '../components/icons'
 import './AboutPage.css'
 
 const features = [

@@ -1,5 +1,5 @@
-import heroIllustration from './assets/school-booth-hero.png'
-import { ArrowIcon, CameraIcon, DownloadIcon, WandIcon } from './components/icons'
+import heroIllustration from '../assets/school-booth-hero.png'
+import { ArrowIcon, CameraIcon, DownloadIcon, WandIcon } from '../components/icons'
 
 interface HomePageProps {
   onStart: () => void

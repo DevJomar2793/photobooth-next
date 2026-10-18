@@ -1,10 +1,12 @@
-import type { CapturedPhoto, PhotoTemplateId } from '../PhotoBoothTypes'
+import type { Ref } from 'react'
+import type { CapturedPhoto, PhotoTemplateId } from '../types/PhotoBoothTypes'
 import './PhotoTemplate.css'
 
 interface PhotoTemplateProps {
   photos: CapturedPhoto[]
   templateId: PhotoTemplateId
   title: string
+  elementRef?: Ref<HTMLDivElement>
 }
 
 const templateDecorations: Record<PhotoTemplateId, string[]> = {
@@ -18,12 +20,12 @@ const templateDecorations: Record<PhotoTemplateId, string[]> = {
   premium: ['♕', '★', '✦', '◆', '★'],
 }
 
-function PhotoTemplate({ photos, templateId, title }: PhotoTemplateProps) {
+function PhotoTemplate({ photos, templateId, title, elementRef }: PhotoTemplateProps) {
   const photoSlots = Array.from({ length: 4 })
   const decorations = templateDecorations[templateId]
 
   return (
-    <div className={`photo-template photo-template-${templateId}`}>
+    <div className={`photo-template photo-template-${templateId}`} ref={elementRef}>
       <div className="template-photo-grid">
         {photoSlots.map((_, index) => {
           const photo = photos[index]
