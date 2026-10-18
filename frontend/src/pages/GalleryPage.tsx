@@ -11,17 +11,13 @@ import {
   SearchIcon,
   TrashIcon,
 } from "../components/icons";
+import {
+  getImages,
+  getImageUrl,
+  type ImageListItemResponse,
+} from "../api/images";
 import { photoTemplateOptions } from "../data/PhotoTemplateOptions";
-import { API_URL } from "../config";
 import "./GalleryPage.css";
-
-interface ImageListItemResponse {
-  id: number;
-  filename: string;
-  content_type: string;
-  created_at: string;
-  image_url: string;
-}
 
 interface GalleryPhoto {
   id: number;
@@ -74,7 +70,7 @@ function createGalleryPhoto(image: ImageListItemResponse): GalleryPhoto {
     title: template?.title ?? fallbackTitle,
     template: template?.name ?? "Unknown",
     date: formatPhotoDate(image.created_at),
-    image: `${API_URL}${image.image_url}`,
+    image: getImageUrl(image.image_url),
     fileName: image.filename,
     width: 543,
     height: 724,
@@ -107,15 +103,7 @@ function GalleryPage() {
       setLoadError("");
 
       try {
-        const response = await fetch(`${API_URL}/list-of-image`, {
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error("Unable to load images.");
-        }
-
-        const images: ImageListItemResponse[] = await response.json();
+        const images = await getImages(controller.signal);
         const galleryPhotos = images.map(createGalleryPhoto);
 
         setPhotos(galleryPhotos);
