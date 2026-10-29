@@ -1732,6 +1732,25 @@ refactor: simplify user service
 
 ---
 
+# CI/CD Pipeline Rules
+
+Follow this release flow:
+
+```text
+Local development → push to dev → CI checks → manually review a dev-to-main pull request → merge → production deployment
+```
+
+- `dev` is the development branch. Push tested local changes there. It does not have a separate Vercel or Render deployment.
+- `main` is the production branch. Move changes from `dev` to `main` through a manually merged pull request. Never auto-merge or push directly to `main`.
+- Keep GitHub Actions checks running for pushes and pull requests targeting `dev` or `main`. Require the frontend and backend checks before merging into `main`. Do not report a check as passed unless its command succeeds.
+- Use the existing `frontend/package-lock.json` with `npm ci`. Run the project's lint and build commands. Run backend syntax, startup, and health checks. Add unit or integration test commands only when those tests exist and can run reliably in CI.
+- Deploy the frontend to Vercel from `main` only after required CI checks pass. Configure the Render backend service for `main` with **After CI Checks Pass**. A failed check must block production deployment.
+- Keep local and production configuration separate. Store deployment tokens and production database credentials in the appropriate platform secret settings. Never commit or print them, and do not use production database credentials in ordinary CI checks.
+- Do not run destructive migrations or modify production data in CI. Do not add Docker or staging services unless a real need is agreed first.
+- Before changing the pipeline, read `.github/workflows/ci.yml` and `DEPLOYMENT.md`. Make the smallest change needed and check the affected GitHub Actions logs. If runners do not start, identify the actual Actions or billing restriction before recommending a paid plan.
+
+---
+
 # Security Rules
 
 Never hardcode:
