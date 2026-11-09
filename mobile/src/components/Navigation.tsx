@@ -1,0 +1,143 @@
+import { Tabs } from "expo-router";
+import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { type ColorValue, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import { colors } from "@/theme";
+
+interface NavigationIconProps {
+  color: ColorValue;
+  name: SymbolViewProps["name"];
+}
+
+function NavigationIcon({ color, name }: NavigationIconProps) {
+  return <SymbolView name={name} size={23} tintColor={color} />;
+}
+
+function BrandHeader() {
+  return (
+    <SafeAreaView style={styles.headerSafeArea} edges={["top"]}>
+      <View style={styles.header}>
+        <View style={styles.brandMark}>
+          <SymbolView
+            name={{
+              ios: "camera.fill",
+              android: "photo_camera",
+              web: "photo_camera",
+            }}
+            size={31}
+            tintColor={colors.white}
+          />
+        </View>
+        <View style={styles.brandCopy}>
+          <Text style={styles.brandName}>SCHOOL BOOTH</Text>
+          <Text style={styles.brandTagline}>SNAP • SMILE • CREATE MEMORIES</Text>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+export default function Navigation() {
+  return (
+    <Tabs
+      screenOptions={{
+        header: () => <BrandHeader />,
+        tabBarActiveTintColor: colors.blue,
+        tabBarInactiveTintColor: colors.muted,
+        tabBarHideOnKeyboard: true,
+        tabBarLabelStyle: styles.tabLabel,
+        tabBarStyle: styles.tabBar,
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Home",
+          tabBarAccessibilityLabel: "Home",
+          tabBarIcon: ({ color }) => (
+            <NavigationIcon
+              color={color}
+              name={{ ios: "house.fill", android: "home", web: "home" }}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="gallery"
+        options={{
+          title: "Gallery",
+          tabBarAccessibilityLabel: "Gallery",
+          tabBarIcon: ({ color }) => (
+            <NavigationIcon
+              color={color}
+              name={{ ios: "photo.on.rectangle", android: "photo_library", web: "photo_library" }}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="about"
+        options={{
+          title: "About",
+          tabBarAccessibilityLabel: "About School Booth",
+          tabBarIcon: ({ color }) => (
+            <NavigationIcon
+              color={color}
+              name={{ ios: "info.circle.fill", android: "info", web: "info" }}
+            />
+          ),
+        }}
+      />
+    </Tabs>
+  );
+}
+
+const styles = StyleSheet.create({
+  headerSafeArea: {
+    backgroundColor: colors.white,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+  },
+  header: {
+    minHeight: 72,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  brandMark: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    backgroundColor: colors.navy,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  brandCopy: {
+    flex: 1,
+  },
+  brandName: {
+    color: colors.navy,
+    fontSize: 20,
+    fontWeight: "900",
+    letterSpacing: -0.7,
+  },
+  brandTagline: {
+    color: colors.muted,
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    marginTop: 2,
+  },
+  tabBar: {
+    backgroundColor: colors.white,
+    borderTopColor: colors.border,
+    minHeight: 64,
+    paddingTop: 6,
+  },
+  tabLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+});

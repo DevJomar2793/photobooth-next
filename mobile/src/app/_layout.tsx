@@ -1,10 +1,11 @@
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import { StatusBar } from "expo-status-bar";
+
+import Navigation from "@/components/Navigation";
 
 export default function RootLayout() {
   return (
     <>
-      <Stack screenOptions={{ headerShown: false }} />
+      <Navigation />
       <StatusBar style="dark" />
     </>
   );
