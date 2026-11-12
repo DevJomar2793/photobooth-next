@@ -93,7 +93,7 @@ export default function AboutScreen() {
       </Text>
 
       <Image
-        source={require("../../assets/images/about-hero.png")}
+        source={require("../../../assets/images/about-hero.png")}
         style={[styles.artwork, { height: artworkHeight }]}
         resizeMode="contain"
         accessibilityLabel="A Good Vibes photo strip with students, playful doodles, and a blue camera"
