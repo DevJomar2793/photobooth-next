@@ -1,6 +1,8 @@
+import { type Href, Link } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import {
   Image,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -67,27 +69,32 @@ export default function HomeScreen() {
           accessibilityLabel="A blue camera surrounded by photos, stars, hearts, and colorful doodles"
         />
 
-        <View style={styles.cta} accessibilityRole="text">
-          <SymbolView
-            name={{
-              ios: "camera.fill",
-              android: "photo_camera",
-              web: "photo_camera",
-            }}
-            size={26}
-            tintColor={colors.white}
-          />
-          <Text style={styles.ctaText}>Start Photo Booth</Text>
-          <SymbolView
-            name={{
-              ios: "chevron.right",
-              android: "chevron_right",
-              web: "chevron_right",
-            }}
-            size={22}
-            tintColor={colors.white}
-          />
-        </View>
+        <Link href={"/capture" as Href} asChild>
+          <Pressable
+            style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
+            accessibilityLabel="Start Photo Booth"
+          >
+            <SymbolView
+              name={{
+                ios: "camera.fill",
+                android: "photo_camera",
+                web: "photo_camera",
+              }}
+              size={26}
+              tintColor={colors.white}
+            />
+            <Text style={styles.ctaText}>Start Photo Booth</Text>
+            <SymbolView
+              name={{
+                ios: "chevron.right",
+                android: "chevron_right",
+                web: "chevron_right",
+              }}
+              size={22}
+              tintColor={colors.white}
+            />
+          </Pressable>
+        </Link>
       </View>
 
       <View style={[styles.featureGrid, isNarrowScreen && styles.featureGridNarrow]}>
@@ -178,6 +185,9 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 17,
     fontWeight: "800",
+  },
+  ctaPressed: {
+    opacity: 0.82,
   },
   featureGrid: {
     flexDirection: "row",
