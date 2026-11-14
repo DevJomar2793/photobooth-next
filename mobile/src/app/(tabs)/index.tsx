@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { useBoothSession } from "@/BoothSessionContext";
 import { colors } from "@/theme";
 
 const features = [
@@ -29,6 +30,12 @@ const features = [
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { resetSession } = useBoothSession();
+
+  const handleStartPhotoBooth = () => {
+    resetSession();
+    router.push("/capture");
+  };
 
   return (
     <View style={styles.screen}>
@@ -56,7 +63,7 @@ export default function HomeScreen() {
 
         <Pressable
           style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
-          onPress={() => router.push("/capture")}
+          onPress={handleStartPhotoBooth}
           accessibilityRole="button"
           accessibilityLabel="Start Photo Booth"
         >

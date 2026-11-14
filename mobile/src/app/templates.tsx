@@ -1,104 +1,180 @@
-import { type Href, Link } from "expo-router";
+import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
+import { useState } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import {
+  MAX_SESSION_PHOTOS,
+  useBoothSession,
+} from "@/BoothSessionContext";
 import BoothPageHeader from "@/components/BoothPageHeader";
 import PageFooter from "@/components/PageFooter";
+import TemplatePreviewModal from "@/components/TemplatePreviewModal";
 import { templateOptions } from "@/data/templateOptions";
 import { colors } from "@/theme";
 
-const selectedTemplate = templateOptions[0];
-
 export default function TemplatesScreen() {
-  return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.page}
-      showsVerticalScrollIndicator={false}
-    >
-      <BoothPageHeader
-        backHref="/capture"
-        title="Select a Template"
-        description="Choose your favorite design to make your photos more fun!"
-      />
+  const router = useRouter();
+  const {
+    capturedPhotos,
+    selectedTemplateId,
+    selectTemplate,
+  } = useBoothSession();
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const selectedTemplate =
+    templateOptions.find((template) => template.id === selectedTemplateId) ??
+    templateOptions[0];
+  const hasFourPhotos = capturedPhotos.length === MAX_SESSION_PHOTOS;
 
-      <View style={styles.templateGrid}>
-        {templateOptions.map((template, index) => {
-          const isSelected = index === 0;
-
-          return (
-            <View style={styles.templateOption} key={template.id}>
-              <View style={[styles.templateCard, isSelected && styles.templateCardSelected]}>
-                <Image
-                  source={template.image}
-                  style={styles.templateImage}
-                  resizeMode="cover"
-                  accessibilityLabel={`${template.name} template preview`}
-                />
-                {isSelected && (
-                  <View style={styles.selectedBadge}>
-                    <SymbolView
-                      name={{ ios: "checkmark", android: "check", web: "check" }}
-                      size={19}
-                      tintColor={colors.white}
-                    />
-                  </View>
-                )}
-              </View>
-              <Text style={[styles.templateName, isSelected && styles.templateNameSelected]}>
-                {template.name}
-              </Text>
-            </View>
-          );
-        })}
-      </View>
-
-      <View style={styles.previewPanel}>
-        <View style={styles.previewHeading}>
-          <SymbolView
-            name={{ ios: "eye.fill", android: "visibility", web: "visibility" }}
-            size={25}
-            tintColor={colors.navy}
-          />
-          <View style={styles.previewHeadingCopy}>
-            <Text style={styles.previewTitle}>Template Preview</Text>
-            <Text style={styles.previewDescription}>
-              Classic is selected for this static mobile walkthrough.
-            </Text>
-          </View>
-        </View>
-
-        <Image
-          source={selectedTemplate.image}
-          style={styles.largePreview}
-          resizeMode="cover"
-          accessibilityLabel="Selected Classic Good Vibes template"
+  if (!hasFourPhotos) {
+    return (
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={styles.page}
+        showsVerticalScrollIndicator={false}
+      >
+        <BoothPageHeader
+          backHref="/capture"
+          title="Photos Needed"
+          description="Capture all four photos before choosing a template."
         />
 
-        <Link href={"/preview" as Href} asChild>
-          <Pressable
-            style={({ pressed }) => [styles.useButton, pressed && styles.buttonPressed]}
-            accessibilityLabel="Use Classic template"
-          >
-            <View style={styles.useButtonIcon}>
-              <SymbolView
-                name={{ ios: "checkmark", android: "check", web: "check" }}
-                size={18}
-                tintColor={colors.blue}
-              />
-            </View>
-            <Text style={styles.useButtonText}>Use This Template</Text>
+        <View style={styles.recoveryCard}>
+          <View style={styles.recoveryIcon}>
             <SymbolView
-              name={{ ios: "chevron.right", android: "arrow_forward", web: "arrow_forward" }}
-              size={20}
+              name={{ ios: "camera.fill", android: "photo_camera", web: "photo_camera" }}
+              size={32}
+              tintColor={colors.blue}
+            />
+          </View>
+          <Text style={styles.recoveryTitle}>
+            {capturedPhotos.length} of {MAX_SESSION_PHOTOS} photos captured
+          </Text>
+          <Text style={styles.recoveryText}>
+            Return to the camera and complete your photo set.
+          </Text>
+          <Pressable
+            style={({ pressed }) => [
+              styles.cameraButton,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={() => router.replace("/capture")}
+            accessibilityRole="button"
+          >
+            <Text style={styles.cameraButtonText}>Return to Camera</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    );
+  }
+
+  const handleUseTemplate = () => {
+    setIsPreviewOpen(false);
+    router.push("/preview");
+  };
+
+  return (
+    <>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={styles.page}
+        showsVerticalScrollIndicator={false}
+      >
+        <BoothPageHeader
+          backHref="/capture"
+          title="Select a Template"
+          description="Choose a design, then preview it with your four photos."
+        />
+
+        <View style={styles.templateGrid}>
+          {templateOptions.map((template) => {
+            const isSelected = template.id === selectedTemplate.id;
+
+            return (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.templateOption,
+                  pressed && styles.buttonPressed,
+                ]}
+                onPress={() => selectTemplate(template.id)}
+                accessibilityRole="button"
+                accessibilityLabel={`Select ${template.name} template`}
+                accessibilityState={{ selected: isSelected }}
+                key={template.id}
+              >
+                <View
+                  style={[
+                    styles.templateCard,
+                    isSelected && styles.templateCardSelected,
+                  ]}
+                >
+                  <Image
+                    source={template.image}
+                    style={styles.templateImage}
+                    resizeMode="cover"
+                    accessibilityLabel={`${template.name} template preview`}
+                  />
+                  {isSelected && (
+                    <View style={styles.selectedBadge}>
+                      <SymbolView
+                        name={{ ios: "checkmark", android: "check", web: "check" }}
+                        size={19}
+                        tintColor={colors.white}
+                      />
+                    </View>
+                  )}
+                </View>
+                <Text
+                  style={[
+                    styles.templateName,
+                    isSelected && styles.templateNameSelected,
+                  ]}
+                >
+                  {template.name}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={styles.previewPanel}>
+          <View style={styles.previewCopy}>
+            <Text style={styles.previewEyebrow}>SELECTED TEMPLATE</Text>
+            <Text style={styles.previewTitle}>{selectedTemplate.name}</Text>
+            <Text style={styles.previewDescription}>
+              Preview this design with your four captured photos before continuing.
+            </Text>
+          </View>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.previewButton,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={() => setIsPreviewOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`Preview ${selectedTemplate.name} with captured photos`}
+          >
+            <SymbolView
+              name={{ ios: "eye.fill", android: "visibility", web: "visibility" }}
+              size={22}
               tintColor={colors.white}
             />
+            <Text style={styles.previewButtonText}>Preview with My Photos</Text>
           </Pressable>
-        </Link>
-      </View>
+        </View>
 
-      <PageFooter />
-    </ScrollView>
+        <PageFooter />
+      </ScrollView>
+
+      <TemplatePreviewModal
+        visible={isPreviewOpen}
+        template={selectedTemplate}
+        photos={capturedPhotos}
+        onClose={() => setIsPreviewOpen(false)}
+        onUseTemplate={handleUseTemplate}
+      />
+    </>
   );
 }
 
@@ -133,8 +209,8 @@ const styles = StyleSheet.create({
   },
   templateCardSelected: {
     borderColor: colors.blue,
-    borderWidth: 2,
-    padding: 5,
+    borderWidth: 3,
+    padding: 4,
   },
   templateImage: {
     width: "100%",
@@ -143,11 +219,11 @@ const styles = StyleSheet.create({
   },
   selectedBadge: {
     position: "absolute",
-    top: -9,
-    right: -8,
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    top: -10,
+    right: -9,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.blue,
     borderColor: colors.white,
     borderWidth: 3,
@@ -173,60 +249,89 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     marginTop: 20,
     padding: 14,
+    gap: 14,
   },
-  previewHeading: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
+  previewCopy: {
+    gap: 3,
   },
-  previewHeadingCopy: {
-    flex: 1,
+  previewEyebrow: {
+    color: colors.blue,
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 1.2,
   },
   previewTitle: {
     color: colors.navy,
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: "900",
   },
   previewDescription: {
     color: colors.muted,
     fontSize: 12,
     lineHeight: 17,
-    marginTop: 3,
   },
-  largePreview: {
-    width: "100%",
-    maxWidth: 310,
-    aspectRatio: 0.75,
-    borderRadius: 13,
-    alignSelf: "center",
-    marginTop: 16,
-  },
-  useButton: {
+  previewButton: {
     minHeight: 54,
-    backgroundColor: colors.blue,
+    paddingHorizontal: 14,
     borderRadius: 13,
-    paddingHorizontal: 16,
+    backgroundColor: colors.blue,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
-    marginTop: 16,
+    gap: 9,
   },
-  useButtonIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  previewButtonText: {
+    color: colors.white,
+    fontSize: 15,
+    fontWeight: "900",
+  },
+  recoveryCard: {
+    minHeight: 320,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 18,
     backgroundColor: colors.white,
     alignItems: "center",
     justifyContent: "center",
+    gap: 10,
   },
-  useButtonText: {
-    flexShrink: 1,
+  recoveryIcon: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: colors.lightBlue,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  recoveryTitle: {
+    color: colors.navy,
+    fontSize: 19,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+  recoveryText: {
+    color: colors.muted,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: "center",
+  },
+  cameraButton: {
+    minHeight: 50,
+    marginTop: 8,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: colors.blue,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cameraButtonText: {
     color: colors.white,
-    fontSize: 16,
-    fontWeight: "800",
+    fontSize: 14,
+    fontWeight: "900",
   },
   buttonPressed: {
-    opacity: 0.78,
+    opacity: 0.76,
   },
 });

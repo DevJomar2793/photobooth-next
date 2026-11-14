@@ -1,8 +1,9 @@
-import { Link } from "expo-router";
+import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useBoothSession } from "@/BoothSessionContext";
 import { colors } from "@/theme";
 
 interface BrandHeaderProps {
@@ -10,6 +11,14 @@ interface BrandHeaderProps {
 }
 
 export default function BrandHeader({ showExit = false }: BrandHeaderProps) {
+  const router = useRouter();
+  const { resetSession } = useBoothSession();
+
+  const handleExit = () => {
+    resetSession();
+    router.replace("/");
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <View style={styles.header}>
@@ -35,26 +44,25 @@ export default function BrandHeader({ showExit = false }: BrandHeaderProps) {
         </View>
 
         {showExit && (
-          <Link href="/" replace asChild>
-            <Pressable
-              style={({ pressed }) => [
-                styles.exitButton,
-                pressed && styles.exitButtonPressed,
-              ]}
-              accessibilityLabel="Exit photo booth"
-            >
-              <SymbolView
-                name={{
-                  ios: "rectangle.portrait.and.arrow.right",
-                  android: "logout",
-                  web: "logout",
-                }}
-                size={20}
-                tintColor={colors.navy}
-              />
-              <Text style={styles.exitText}>Exit</Text>
-            </Pressable>
-          </Link>
+          <Pressable
+            style={({ pressed }) => [
+              styles.exitButton,
+              pressed && styles.exitButtonPressed,
+            ]}
+            onPress={handleExit}
+            accessibilityLabel="Exit photo booth"
+          >
+            <SymbolView
+              name={{
+                ios: "rectangle.portrait.and.arrow.right",
+                android: "logout",
+                web: "logout",
+              }}
+              size={20}
+              tintColor={colors.navy}
+            />
+            <Text style={styles.exitText}>Exit</Text>
+          </Pressable>
         )}
       </View>
     </SafeAreaView>

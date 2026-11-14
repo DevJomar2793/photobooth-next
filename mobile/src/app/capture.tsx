@@ -12,18 +12,24 @@ import {
   View,
 } from "react-native";
 
-import CapturedPhotosModal, {
-  type CapturedPhoto,
-} from "@/components/CapturedPhotosModal";
+import {
+  MAX_SESSION_PHOTOS,
+  useBoothSession,
+} from "@/BoothSessionContext";
+import CapturedPhotosModal from "@/components/CapturedPhotosModal";
 import { colors } from "@/theme";
 
-const MAX_PHOTOS = 4;
 const TIMER_OPTIONS = [0, 3, 5] as const;
 
 type TimerSeconds = (typeof TIMER_OPTIONS)[number];
 
 export default function CaptureScreen() {
   const router = useRouter();
+  const {
+    capturedPhotos,
+    addCapturedPhoto,
+    removeCapturedPhoto,
+  } = useBoothSession();
   const cameraRef = useRef<CameraView>(null);
   const countdownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const captureLockedRef = useRef(false);
@@ -36,7 +42,6 @@ export default function CaptureScreen() {
   const [cameraFacing, setCameraFacing] = useState<CameraType>("front");
   const [selectedTimer, setSelectedTimer] = useState<TimerSeconds>(0);
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [capturedPhotos, setCapturedPhotos] = useState<CapturedPhoto[]>([]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [cameraError, setCameraError] = useState("");
 
@@ -88,13 +93,7 @@ export default function CaptureScreen() {
         return;
       }
 
-      setCapturedPhotos((currentPhotos) => {
-        if (currentPhotos.length >= MAX_PHOTOS) {
-          return currentPhotos;
-        }
-
-        return [...currentPhotos, { id: photo.uri, uri: photo.uri }];
-      });
+      addCapturedPhoto(photo.uri);
     } catch {
       if (isScreenFocusedRef.current) {
         setCameraError("We could not take the photo. Please try again.");
@@ -132,7 +131,7 @@ export default function CaptureScreen() {
       !permission?.granted ||
       !isCameraActive ||
       !isCameraReady ||
-      capturedPhotos.length >= MAX_PHOTOS;
+      capturedPhotos.length >= MAX_SESSION_PHOTOS;
 
     if (cannotCapture) {
       return;
@@ -186,9 +185,7 @@ export default function CaptureScreen() {
           text: "Remove",
           style: "destructive",
           onPress: () => {
-            setCapturedPhotos((currentPhotos) =>
-              currentPhotos.filter((photo) => photo.id !== photoId),
-            );
+            removeCapturedPhoto(photoId);
           },
         },
       ],
@@ -196,7 +193,7 @@ export default function CaptureScreen() {
   };
 
   const isBusy = countdown !== null || isCapturing;
-  const hasReachedPhotoLimit = capturedPhotos.length >= MAX_PHOTOS;
+  const hasReachedPhotoLimit = capturedPhotos.length >= MAX_SESSION_PHOTOS;
   const isCaptureDisabled =
     isBusy ||
     !permission?.granted ||
@@ -206,6 +203,7 @@ export default function CaptureScreen() {
   const isPreviewDisabled = capturedPhotos.length === 0 || isBusy;
   const isCameraControlDisabled = !permission?.granted || isCapturing;
   const isFlipDisabled = !isCameraActive || !isCameraReady || isBusy;
+  const isNextDisabled = isBusy || !hasReachedPhotoLimit;
 
   const renderCameraContent = () => {
     if (!permission) {
@@ -323,7 +321,7 @@ export default function CaptureScreen() {
           <Text style={styles.toolbarButtonText}>Preview</Text>
           <View style={styles.photoCountBadge}>
             <Text style={styles.photoCountText}>
-              {capturedPhotos.length}/{MAX_PHOTOS}
+              {capturedPhotos.length}/{MAX_SESSION_PHOTOS}
             </Text>
           </View>
         </Pressable>
@@ -485,14 +483,14 @@ export default function CaptureScreen() {
             <Pressable
               style={({ pressed }) => [
                 styles.nextButton,
-                isBusy && styles.buttonDisabled,
-                pressed && !isBusy && styles.pressed,
+                isNextDisabled && styles.buttonDisabled,
+                pressed && !isNextDisabled && styles.pressed,
               ]}
               onPress={() => router.push("/templates")}
-              disabled={isBusy}
+              disabled={isNextDisabled}
               accessibilityRole="button"
               accessibilityLabel="Continue to templates"
-              accessibilityState={{ disabled: isBusy }}
+              accessibilityState={{ disabled: isNextDisabled }}
             >
               <Text style={styles.nextButtonText}>Next</Text>
               <SymbolView
@@ -508,7 +506,7 @@ export default function CaptureScreen() {
       <CapturedPhotosModal
         visible={isPreviewOpen}
         photos={capturedPhotos}
-        maxPhotos={MAX_PHOTOS}
+        maxPhotos={MAX_SESSION_PHOTOS}
         onClose={() => setIsPreviewOpen(false)}
         onRemovePhoto={handleRemovePhoto}
       />

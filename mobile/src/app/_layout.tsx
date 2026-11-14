@@ -1,11 +1,12 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
+import { BoothSessionProvider } from "@/BoothSessionContext";
 import BrandHeader from "@/components/BrandHeader";
 
 export default function RootLayout() {
   return (
-    <>
+    <BoothSessionProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
@@ -22,6 +23,6 @@ export default function RootLayout() {
         />
       </Stack>
       <StatusBar style="dark" />
-    </>
+    </BoothSessionProvider>
   );
 }

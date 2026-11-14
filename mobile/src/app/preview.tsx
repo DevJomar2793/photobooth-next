@@ -1,14 +1,17 @@
-import { type Href, Link } from "expo-router";
+import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import type { ReactNode } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import {
+  MAX_SESSION_PHOTOS,
+  useBoothSession,
+} from "@/BoothSessionContext";
 import BoothPageHeader from "@/components/BoothPageHeader";
 import PageFooter from "@/components/PageFooter";
+import PhotoTemplateCanvas from "@/components/PhotoTemplateCanvas";
 import { templateOptions } from "@/data/templateOptions";
 import { colors } from "@/theme";
-
-const previewTemplate = templateOptions[0];
 
 interface ActionSectionProps {
   title: string;
@@ -35,6 +38,61 @@ function ActionSection({ title, description, icon, children }: ActionSectionProp
 }
 
 export default function PreviewScreen() {
+  const router = useRouter();
+  const {
+    capturedPhotos,
+    selectedTemplateId,
+    resetSession,
+  } = useBoothSession();
+  const selectedTemplate =
+    templateOptions.find((template) => template.id === selectedTemplateId) ??
+    templateOptions[0];
+
+  if (capturedPhotos.length !== MAX_SESSION_PHOTOS) {
+    return (
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={styles.page}
+        showsVerticalScrollIndicator={false}
+      >
+        <BoothPageHeader
+          backHref="/templates"
+          title="Preview Unavailable"
+          description="Four captured photos are required to generate your template."
+        />
+
+        <View style={styles.recoveryCard}>
+          <View style={styles.recoveryIcon}>
+            <SymbolView
+              name={{ ios: "camera.fill", android: "photo_camera", web: "photo_camera" }}
+              size={32}
+              tintColor={colors.blue}
+            />
+          </View>
+          <Text style={styles.recoveryTitle}>Complete your four-photo set</Text>
+          <Text style={styles.recoveryText}>
+            Return to the camera before generating a final preview.
+          </Text>
+          <Pressable
+            style={({ pressed }) => [
+              styles.returnButton,
+              pressed && styles.pressed,
+            ]}
+            onPress={() => router.replace("/capture")}
+            accessibilityRole="button"
+          >
+            <Text style={styles.returnButtonText}>Return to Camera</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    );
+  }
+
+  const handleRetake = () => {
+    resetSession();
+    router.replace("/capture");
+  };
+
   return (
     <ScrollView
       style={styles.screen}
@@ -48,11 +106,11 @@ export default function PreviewScreen() {
       />
 
       <View style={styles.photoPanel}>
-        <Image
-          source={previewTemplate.image}
-          style={styles.previewImage}
-          resizeMode="cover"
-          accessibilityLabel="Finished Good Vibes School Booth photo"
+        <PhotoTemplateCanvas
+          template={selectedTemplate}
+          photos={capturedPhotos}
+          style={styles.previewCanvas}
+          accessibilityLabel={`Finished ${selectedTemplate.name} School Booth photo`}
         />
       </View>
 
@@ -128,7 +186,7 @@ export default function PreviewScreen() {
 
         <ActionSection
           title="Take Another Photo"
-          description="Return to the static camera screen and view the flow again."
+          description="Start a new four-photo School Booth session."
           icon={
             <SymbolView
               name={{ ios: "arrow.clockwise", android: "refresh", web: "refresh" }}
@@ -137,19 +195,22 @@ export default function PreviewScreen() {
             />
           }
         >
-          <Link href={"/capture" as Href} replace asChild>
-            <Pressable
-              style={({ pressed }) => [styles.actionButton, styles.retakeButton, pressed && styles.pressed]}
-              accessibilityLabel="Return to Capture"
-            >
-              <SymbolView
-                name={{ ios: "camera", android: "photo_camera", web: "photo_camera" }}
-                size={21}
-                tintColor={colors.blue}
-              />
-              <Text style={styles.retakeButtonText}>Retake Photo</Text>
-            </Pressable>
-          </Link>
+          <Pressable
+            style={({ pressed }) => [
+              styles.actionButton,
+              styles.retakeButton,
+              pressed && styles.pressed,
+            ]}
+            onPress={handleRetake}
+            accessibilityLabel="Start a new photo session"
+          >
+            <SymbolView
+              name={{ ios: "camera", android: "photo_camera", web: "photo_camera" }}
+              size={21}
+              tintColor={colors.blue}
+            />
+            <Text style={styles.retakeButtonText}>Retake Photos</Text>
+          </Pressable>
         </ActionSection>
       </View>
 
@@ -176,10 +237,9 @@ const styles = StyleSheet.create({
     padding: 14,
     alignItems: "center",
   },
-  previewImage: {
+  previewCanvas: {
     width: "100%",
     maxWidth: 340,
-    aspectRatio: 0.75,
     borderRadius: 13,
   },
   actionsPanel: {
@@ -261,6 +321,52 @@ const styles = StyleSheet.create({
     color: colors.blue,
     fontSize: 15,
     fontWeight: "800",
+  },
+  recoveryCard: {
+    minHeight: 320,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 18,
+    backgroundColor: colors.white,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+  recoveryIcon: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: colors.lightBlue,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  recoveryTitle: {
+    color: colors.navy,
+    fontSize: 19,
+    fontWeight: "900",
+    textAlign: "center",
+  },
+  recoveryText: {
+    color: colors.muted,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: "center",
+  },
+  returnButton: {
+    minHeight: 50,
+    marginTop: 8,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: colors.blue,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  returnButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: "900",
   },
   pressed: {
     opacity: 0.74,

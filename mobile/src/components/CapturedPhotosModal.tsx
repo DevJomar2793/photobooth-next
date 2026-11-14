@@ -10,12 +10,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import type { CapturedPhoto } from "@/BoothSessionContext";
 import { colors } from "@/theme";
-
-export interface CapturedPhoto {
-  id: string;
-  uri: string;
-}
 
 interface CapturedPhotosModalProps {
   visible: boolean;
