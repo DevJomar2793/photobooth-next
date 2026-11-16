@@ -16,6 +16,7 @@ class ImageUploadResponse(BaseModel):
     id: int
     filename: str
     content_type: str
+    template_id: str | None
     created_at: datetime
 
 
@@ -23,5 +24,6 @@ class ImageListItemResponse(BaseModel):
     id: int
     filename: str
     content_type: str
+    template_id: str | None
     created_at: datetime
     image_url: str

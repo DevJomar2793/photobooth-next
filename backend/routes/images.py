@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -10,6 +10,35 @@ from schema import ImageListItemResponse, ImageUploadResponse
 router = APIRouter()
 
 MAX_IMAGE_SIZE = 10 * 1024 * 1024
+TEMPLATE_IDS = (
+    "classic",
+    "best-friends",
+    "school-life",
+    "film-strip",
+    "cute-doodles",
+    "colorful",
+    "notebook",
+    "premium",
+)
+
+
+def resolve_template_id(filename: str, template_id: str | None) -> str | None:
+    if template_id is not None:
+        normalized_template_id = template_id.strip()
+
+        if normalized_template_id not in TEMPLATE_IDS:
+            raise HTTPException(status_code=400, detail="Invalid template selection.")
+
+        return normalized_template_id
+
+    return next(
+        (
+            known_template_id
+            for known_template_id in TEMPLATE_IDS
+            if filename.startswith(f"{known_template_id}-")
+        ),
+        None,
+    )
 
 # Upload images endpoint
 @router.post(
@@ -19,6 +48,7 @@ MAX_IMAGE_SIZE = 10 * 1024 * 1024
 )
 async def create_image(
     file: UploadFile = File(...),
+    template_id: str | None = Form(default=None),
     db: Session = Depends(get_db),
 ) -> ImageUploadResponse:
     if not file.content_type or not file.content_type.startswith("image/"):
@@ -32,9 +62,13 @@ async def create_image(
     if len(image_data) > MAX_IMAGE_SIZE:
         raise HTTPException(status_code=400, detail="Image files must be 10 MB or smaller.")
 
+    filename = file.filename or "image"
+    resolved_template_id = resolve_template_id(filename, template_id)
+
     image = Image(
-        filename=file.filename or "image",
+        filename=filename,
         content_type=file.content_type,
+        template_id=resolved_template_id,
         image_data=image_data,
     )
 
@@ -52,6 +86,7 @@ async def create_image(
         id=image.id,
         filename=image.filename,
         content_type=image.content_type,
+        template_id=image.template_id,
         created_at=image.created_at,
     )
 
@@ -70,6 +105,7 @@ def get_images(db: Session = Depends(get_db)) -> list[ImageListItemResponse]:
             id=image.id,
             filename=image.filename,
             content_type=image.content_type,
+            template_id=image.template_id,
             created_at=image.created_at,
             image_url=f"/image/{image.id}",
         )

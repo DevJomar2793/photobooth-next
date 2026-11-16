@@ -4,6 +4,7 @@ export interface ImageListItemResponse {
   id: number;
   filename: string;
   content_type: string;
+  template_id: string | null;
   created_at: string;
   image_url: string;
 }

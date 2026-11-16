@@ -7,6 +7,7 @@ export interface ImageUploadResponse {
   id: number;
   filename: string;
   content_type: string;
+  template_id: string | null;
   created_at: string;
 }
 
@@ -69,11 +70,12 @@ async function getApiError(response: Response, fallbackMessage: string) {
   }
 }
 
-export async function uploadImage(imageUri: string) {
+export async function uploadImage(imageUri: string, templateId: string) {
   const formData = new FormData();
   const imageFile = new File(imageUri);
 
   formData.append("file", imageFile, `school-booth-${Date.now()}.jpg`);
+  formData.append("template_id", templateId);
 
   const response = await apiRequest("/upload-image", {
     method: "POST",

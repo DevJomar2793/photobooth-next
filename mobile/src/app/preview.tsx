@@ -198,7 +198,7 @@ export default function PreviewScreen() {
 
     try {
       const imageUri = await getGeneratedImageUri();
-      await uploadImage(imageUri);
+      await uploadImage(imageUri, selectedTemplate.id);
       setIsSaved(true);
       Alert.alert("Photo Saved", "Your photo was saved to the School Booth gallery.");
     } catch (error) {

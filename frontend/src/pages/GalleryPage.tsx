@@ -57,9 +57,11 @@ function formatPhotoDate(createdAt: string) {
 }
 
 function createGalleryPhoto(image: ImageListItemResponse): GalleryPhoto {
-  const template = photoTemplateOptions.find((option) =>
-    image.filename.startsWith(`${option.id}-`),
-  );
+  const template =
+    photoTemplateOptions.find((option) => option.id === image.template_id) ??
+    photoTemplateOptions.find((option) =>
+      image.filename.startsWith(`${option.id}-`),
+    );
   const fallbackTitle = image.filename
     .replace(/\.[^.]+$/, "")
     .replaceAll("-", " ");

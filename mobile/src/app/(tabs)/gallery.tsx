@@ -13,21 +13,28 @@ import {
   View,
 } from "react-native";
 
-import {
-  getImages,
-  getImageUrl,
-  type ImageListItemResponse,
-} from "@/api/images";
+import { getImages, getImageUrl, type ImageListItemResponse } from "@/api/images";
+import GalleryFilterModal from "@/components/GalleryFilterModal";
+import GalleryImagePreviewModal from "@/components/GalleryImagePreviewModal";
 import PageFooter from "@/components/PageFooter";
-import { TEMPLATE_HEIGHT, TEMPLATE_WIDTH } from "@/data/templateOptions";
+import { TEMPLATE_HEIGHT, TEMPLATE_WIDTH, templateOptions } from "@/data/templateOptions";
 import { colors } from "@/theme";
 
 interface GalleryImageCardProps {
   image: ImageListItemResponse;
   width: number;
+  isSelectionMode: boolean;
+  isSelected: boolean;
+  onPress: () => void;
 }
 
-function GalleryImageCard({ image, width }: GalleryImageCardProps) {
+function GalleryImageCard({
+  image,
+  width,
+  isSelectionMode,
+  isSelected,
+  onPress,
+}: GalleryImageCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
   const createdDate = new Date(image.created_at);
   const dateLabel = Number.isNaN(createdDate.getTime())
@@ -35,7 +42,22 @@ function GalleryImageCard({ image, width }: GalleryImageCardProps) {
     : createdDate.toLocaleDateString();
 
   return (
-    <View style={[styles.photoCard, { width }]}>
+    <Pressable
+      style={({ pressed }) => [
+        styles.photoCard,
+        { width },
+        isSelected && styles.selectedPhotoCard,
+        pressed && styles.pressed,
+      ]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={
+        isSelectionMode
+          ? `${isSelected ? "Deselect" : "Select"} ${image.filename}`
+          : `View ${image.filename} full screen`
+      }
+      accessibilityState={{ selected: isSelected }}
+    >
       {hasImageError ? (
         <View style={styles.imageFallback}>
           <SymbolView
@@ -54,13 +76,24 @@ function GalleryImageCard({ image, width }: GalleryImageCardProps) {
           accessibilityLabel={`Saved School Booth photo from ${dateLabel}`}
         />
       )}
+
+      {isSelectionMode ? (
+        <View style={[styles.selectionBadge, isSelected && styles.selectionBadgeActive]}>
+          {isSelected ? (
+            <SymbolView
+              name={{ ios: "checkmark", android: "check", web: "check" }}
+              size={17}
+              tintColor={colors.white}
+            />
+          ) : null}
+        </View>
+      ) : null}
+
       <View style={styles.photoDetails}>
-        <Text style={styles.photoName} numberOfLines={1}>
-          {image.filename}
-        </Text>
+        <Text style={styles.photoName} numberOfLines={1}>{image.filename}</Text>
         <Text style={styles.photoDate}>{dateLabel}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -72,24 +105,38 @@ export default function GalleryScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState<ImageListItemResponse | null>(null);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedImageIds, setSelectedImageIds] = useState<Set<number>>(new Set());
+
+  const selectedTemplate = templateOptions.find(
+    (template) => template.id === selectedTemplateId,
+  );
+  const filterLabel = selectedTemplate?.name ?? "All Photos";
+  const filteredImages = selectedTemplateId
+    ? images.filter((image) => image.template_id === selectedTemplateId)
+    : images;
+  const areAllVisibleImagesSelected =
+    filteredImages.length > 0 &&
+    filteredImages.every((image) => selectedImageIds.has(image.id));
 
   const loadImages = useCallback(
     async (signal?: AbortSignal, isPullToRefresh = false) => {
-      if (isPullToRefresh) {
-        setIsRefreshing(true);
-      } else {
-        setIsLoading(true);
-      }
+      if (isPullToRefresh) setIsRefreshing(true);
+      else setIsLoading(true);
       setError(null);
 
       try {
         const savedImages = await getImages(signal);
         setImages(savedImages);
+        const savedImageIds = new Set(savedImages.map((image) => image.id));
+        setSelectedImageIds(
+          (currentIds) => new Set([...currentIds].filter((id) => savedImageIds.has(id))),
+        );
       } catch (loadError) {
-        if (signal?.aborted) {
-          return;
-        }
-
+        if (signal?.aborted) return;
         setError(
           loadError instanceof Error
             ? loadError.message
@@ -109,21 +156,54 @@ export default function GalleryScreen() {
     useCallback(() => {
       const controller = new AbortController();
       void loadImages(controller.signal);
-
       return () => controller.abort();
     }, [loadImages]),
   );
+
+  const handleSelectTemplate = (templateId: string | null) => {
+    setSelectedTemplateId(templateId);
+    setIsFilterVisible(false);
+    setIsSelectionMode(false);
+    setSelectedImageIds(new Set());
+  };
+
+  const handleSelectionMode = () => {
+    setIsSelectionMode((isActive) => !isActive);
+    setSelectedImageIds(new Set());
+  };
+
+  const handleImagePress = (image: ImageListItemResponse) => {
+    if (!isSelectionMode) {
+      setPreviewImage(image);
+      return;
+    }
+
+    setSelectedImageIds((currentIds) => {
+      const nextIds = new Set(currentIds);
+      if (nextIds.has(image.id)) nextIds.delete(image.id);
+      else nextIds.add(image.id);
+      return nextIds;
+    });
+  };
+
+  const handleSelectAll = () => {
+    setSelectedImageIds((currentIds) => {
+      const nextIds = new Set(currentIds);
+      if (areAllVisibleImagesSelected) {
+        filteredImages.forEach((image) => nextIds.delete(image.id));
+      } else {
+        filteredImages.forEach((image) => nextIds.add(image.id));
+      }
+      return nextIds;
+    });
+  };
 
   const renderHeader = () => (
     <>
       <View style={styles.heading}>
         <View style={styles.headingIcon}>
           <SymbolView
-            name={{
-              ios: "photo.on.rectangle",
-              android: "photo_library",
-              web: "photo_library",
-            }}
+            name={{ ios: "photo.on.rectangle", android: "photo_library", web: "photo_library" }}
             size={28}
             tintColor={colors.navy}
           />
@@ -152,35 +232,64 @@ export default function GalleryScreen() {
         </View>
 
         <View style={[styles.toolbarActions, isNarrowScreen && styles.toolbarActionsNarrow]}>
-          <View
-            style={[styles.filterControl, isNarrowScreen && styles.toolbarControlNarrow]}
-            accessibilityLabel="Photo filter, All Photos"
-            accessibilityState={{ disabled: true }}
+          <Pressable
+            style={({ pressed }) => [
+              styles.filterControl,
+              selectedTemplateId !== null && styles.filterControlActive,
+              isNarrowScreen && styles.toolbarControlNarrow,
+              pressed && styles.pressed,
+            ]}
+            onPress={() => setIsFilterVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`Photo filter, ${filterLabel}`}
           >
-            <Text style={styles.controlText}>All Photos</Text>
+            <Text style={styles.controlText} numberOfLines={1}>{filterLabel}</Text>
             <SymbolView
-              name={{
-                ios: "chevron.down",
-                android: "keyboard_arrow_down",
-                web: "keyboard_arrow_down",
-              }}
+              name={{ ios: "chevron.down", android: "keyboard_arrow_down", web: "keyboard_arrow_down" }}
               size={18}
               tintColor={colors.muted}
             />
-          </View>
-          <View
-            style={[styles.selectControl, isNarrowScreen && styles.toolbarControlNarrow]}
-            accessibilityLabel="Select photos"
-            accessibilityState={{ disabled: true }}
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.selectControl,
+              isSelectionMode && styles.selectControlActive,
+              isNarrowScreen && styles.toolbarControlNarrow,
+              pressed && styles.pressed,
+            ]}
+            onPress={handleSelectionMode}
+            accessibilityRole="button"
+            accessibilityLabel={isSelectionMode ? "Finish selecting photos" : "Select photos"}
           >
             <SymbolView
               name={{ ios: "checkmark.square", android: "check_box", web: "check_box" }}
               size={20}
-              tintColor={colors.navy}
+              tintColor={isSelectionMode ? colors.white : colors.navy}
             />
-            <Text style={styles.selectText}>Select</Text>
-          </View>
+            <Text style={[styles.selectText, isSelectionMode && styles.selectTextActive]}>
+              {isSelectionMode ? `Done (${selectedImageIds.size})` : "Select"}
+            </Text>
+          </Pressable>
         </View>
+
+        {isSelectionMode && filteredImages.length > 0 ? (
+          <View style={styles.selectionToolbar}>
+            <Text style={styles.selectionCount}>{selectedImageIds.size} selected</Text>
+            <Pressable
+              onPress={handleSelectAll}
+              accessibilityRole="button"
+              accessibilityLabel={
+                areAllVisibleImagesSelected
+                  ? "Deselect all visible photos"
+                  : "Select all visible photos"
+              }
+            >
+              <Text style={styles.selectAllText}>
+                {areAllVisibleImagesSelected ? "Deselect All" : "Select All"}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
       </View>
 
       {error && images.length > 0 ? (
@@ -204,7 +313,7 @@ export default function GalleryScreen() {
       );
     }
 
-    if (error) {
+    if (error && images.length === 0) {
       return (
         <View style={styles.emptyState}>
           <View style={styles.emptyIcon}>
@@ -227,15 +336,34 @@ export default function GalleryScreen() {
       );
     }
 
+    if (selectedTemplateId && images.length > 0) {
+      return (
+        <View style={styles.emptyState}>
+          <View style={styles.emptyIcon}>
+            <SymbolView
+              name={{ ios: "line.3.horizontal.decrease.circle", android: "filter_alt_off", web: "filter_alt_off" }}
+              size={44}
+              tintColor={colors.blue}
+            />
+          </View>
+          <Text style={styles.emptyTitle}>No {filterLabel} photos</Text>
+          <Text style={styles.emptyDescription}>No saved images use this template yet.</Text>
+          <Pressable
+            style={({ pressed }) => [styles.retryButton, pressed && styles.pressed]}
+            onPress={() => handleSelectTemplate(null)}
+            accessibilityRole="button"
+          >
+            <Text style={styles.retryButtonText}>Show All Photos</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
     return (
       <View style={styles.emptyState}>
         <View style={styles.emptyIcon}>
           <SymbolView
-            name={{
-              ios: "photo.on.rectangle.angled",
-              android: "add_photo_alternate",
-              web: "add_photo_alternate",
-            }}
+            name={{ ios: "photo.on.rectangle.angled", android: "add_photo_alternate", web: "add_photo_alternate" }}
             size={46}
             tintColor={colors.blue}
           />
@@ -257,181 +385,97 @@ export default function GalleryScreen() {
   };
 
   return (
-    <FlatList
-      style={styles.screen}
-      contentContainerStyle={styles.page}
-      data={images}
-      keyExtractor={(image) => image.id.toString()}
-      renderItem={({ item }) => <GalleryImageCard image={item} width={cardWidth} />}
-      numColumns={2}
-      columnWrapperStyle={styles.photoRow}
-      ListHeaderComponent={renderHeader}
-      ListEmptyComponent={renderEmptyState}
-      ListFooterComponent={<PageFooter />}
-      refreshing={isRefreshing}
-      onRefresh={() => void loadImages(undefined, true)}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-    />
+    <>
+      <FlatList
+        style={styles.screen}
+        contentContainerStyle={styles.page}
+        data={filteredImages}
+        keyExtractor={(image) => image.id.toString()}
+        renderItem={({ item }) => (
+          <GalleryImageCard
+            image={item}
+            width={cardWidth}
+            isSelectionMode={isSelectionMode}
+            isSelected={selectedImageIds.has(item.id)}
+            onPress={() => handleImagePress(item)}
+          />
+        )}
+        numColumns={2}
+        columnWrapperStyle={styles.photoRow}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmptyState}
+        ListFooterComponent={<PageFooter />}
+        refreshing={isRefreshing}
+        onRefresh={() => void loadImages(undefined, true)}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      />
+
+      <GalleryFilterModal
+        visible={isFilterVisible}
+        selectedTemplateId={selectedTemplateId}
+        templates={templateOptions}
+        onClose={() => setIsFilterVisible(false)}
+        onSelectTemplate={handleSelectTemplate}
+      />
+
+      <GalleryImagePreviewModal
+        visible={previewImage !== null}
+        imageUrl={previewImage ? getImageUrl(previewImage.image_url) : ""}
+        accessibilityLabel={
+          previewImage ? `Full-screen preview of ${previewImage.filename}` : "Photo preview"
+        }
+        onClose={() => setPreviewImage(null)}
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  page: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 24,
-  },
+  page: { flexGrow: 1, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 24 },
   heading: { flexDirection: "row", alignItems: "center", gap: 12 },
-  headingIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 14,
-    backgroundColor: colors.lightBlue,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  headingIcon: { width: 50, height: 50, borderRadius: 14, backgroundColor: colors.lightBlue, alignItems: "center", justifyContent: "center" },
   headingCopy: { flex: 1 },
   title: { color: colors.navy, fontSize: 30, fontWeight: "900", letterSpacing: -1 },
   subtitle: { color: colors.muted, fontSize: 14, lineHeight: 19, marginTop: 2 },
   toolbar: { gap: 10, marginTop: 24, marginBottom: 18 },
-  searchField: {
-    height: 50,
-    backgroundColor: colors.white,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: 13,
-    paddingHorizontal: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
+  searchField: { height: 50, backgroundColor: colors.white, borderColor: colors.border, borderWidth: 1, borderRadius: 13, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 10 },
   searchInput: { flex: 1, color: colors.muted, fontSize: 15, paddingVertical: 0 },
   toolbarActions: { flexDirection: "row", gap: 10 },
   toolbarActionsNarrow: { flexDirection: "column" },
-  filterControl: {
-    flex: 1,
-    minHeight: 48,
-    backgroundColor: colors.white,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: 13,
-    paddingHorizontal: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  selectControl: {
-    flex: 1,
-    minHeight: 48,
-    backgroundColor: colors.lightBlue,
-    borderColor: "#c8e0ff",
-    borderWidth: 1,
-    borderRadius: 13,
-    paddingHorizontal: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
+  filterControl: { flex: 1, minHeight: 48, backgroundColor: colors.white, borderColor: colors.border, borderWidth: 1, borderRadius: 13, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  filterControlActive: { borderColor: "#8dbfff", backgroundColor: colors.lightBlue },
+  selectControl: { flex: 1, minHeight: 48, backgroundColor: colors.lightBlue, borderColor: "#c8e0ff", borderWidth: 1, borderRadius: 13, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+  selectControlActive: { backgroundColor: colors.blue, borderColor: colors.blue },
   toolbarControlNarrow: { flex: 0 },
-  controlText: { color: colors.muted, fontSize: 14, fontWeight: "600" },
+  controlText: { flexShrink: 1, color: colors.muted, fontSize: 14, fontWeight: "600" },
   selectText: { color: colors.navy, fontSize: 14, fontWeight: "800" },
+  selectTextActive: { color: colors.white },
+  selectionToolbar: { minHeight: 44, paddingHorizontal: 14, borderRadius: 12, backgroundColor: colors.white, borderColor: colors.border, borderWidth: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  selectionCount: { color: colors.muted, fontSize: 13, fontWeight: "700" },
+  selectAllText: { color: colors.blue, fontSize: 13, fontWeight: "900" },
   photoRow: { gap: 12 },
-  photoCard: {
-    marginBottom: 12,
-    overflow: "hidden",
-    backgroundColor: colors.white,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: 16,
-  },
-  galleryImage: {
-    width: "100%",
-    aspectRatio: TEMPLATE_WIDTH / TEMPLATE_HEIGHT,
-    backgroundColor: colors.lightBlue,
-  },
-  imageFallback: {
-    width: "100%",
-    aspectRatio: TEMPLATE_WIDTH / TEMPLATE_HEIGHT,
-    backgroundColor: colors.lightBlue,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
+  photoCard: { marginBottom: 12, overflow: "hidden", backgroundColor: colors.white, borderColor: colors.border, borderWidth: 1, borderRadius: 16 },
+  selectedPhotoCard: { borderColor: colors.blue, borderWidth: 2 },
+  galleryImage: { width: "100%", aspectRatio: TEMPLATE_WIDTH / TEMPLATE_HEIGHT, backgroundColor: colors.lightBlue },
+  imageFallback: { width: "100%", aspectRatio: TEMPLATE_WIDTH / TEMPLATE_HEIGHT, backgroundColor: colors.lightBlue, alignItems: "center", justifyContent: "center", gap: 8 },
   imageFallbackText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
+  selectionBadge: { position: "absolute", top: 9, right: 9, width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: colors.white, backgroundColor: "rgba(6, 26, 71, 0.45)", alignItems: "center", justifyContent: "center" },
+  selectionBadgeActive: { backgroundColor: colors.blue },
   photoDetails: { padding: 10 },
   photoName: { color: colors.navy, fontSize: 12, fontWeight: "800" },
   photoDate: { color: colors.muted, fontSize: 11, marginTop: 3 },
-  emptyState: {
-    flexGrow: 1,
-    minHeight: 360,
-    backgroundColor: colors.white,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 28,
-    paddingVertical: 46,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyIcon: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: colors.lightBlue,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyTitle: { color: colors.navy, fontSize: 23, fontWeight: "900", marginTop: 18 },
-  emptyDescription: {
-    color: colors.muted,
-    fontSize: 15,
-    lineHeight: 21,
-    textAlign: "center",
-    maxWidth: 290,
-    marginTop: 7,
-  },
-  emptyHint: {
-    backgroundColor: colors.lightBlue,
-    borderRadius: 24,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 20,
-  },
-  emptyHintText: {
-    flexShrink: 1,
-    color: colors.blue,
-    fontSize: 12,
-    fontWeight: "700",
-  },
+  emptyState: { flexGrow: 1, minHeight: 360, backgroundColor: colors.white, borderColor: colors.border, borderWidth: 1, borderRadius: 20, paddingHorizontal: 28, paddingVertical: 46, alignItems: "center", justifyContent: "center" },
+  emptyIcon: { width: 88, height: 88, borderRadius: 44, backgroundColor: colors.lightBlue, alignItems: "center", justifyContent: "center" },
+  emptyTitle: { color: colors.navy, fontSize: 23, fontWeight: "900", marginTop: 18, textAlign: "center" },
+  emptyDescription: { color: colors.muted, fontSize: 15, lineHeight: 21, textAlign: "center", maxWidth: 290, marginTop: 7 },
+  emptyHint: { backgroundColor: colors.lightBlue, borderRadius: 24, paddingHorizontal: 14, paddingVertical: 10, flexDirection: "row", alignItems: "center", gap: 8, marginTop: 20 },
+  emptyHintText: { flexShrink: 1, color: colors.blue, fontSize: 12, fontWeight: "700" },
   loadingText: { color: colors.muted, fontSize: 14, fontWeight: "700", marginTop: 14 },
-  retryButton: {
-    minHeight: 46,
-    marginTop: 20,
-    paddingHorizontal: 22,
-    borderRadius: 12,
-    backgroundColor: colors.blue,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  retryButton: { minHeight: 46, marginTop: 20, paddingHorizontal: 22, borderRadius: 12, backgroundColor: colors.blue, alignItems: "center", justifyContent: "center" },
   retryButtonText: { color: colors.white, fontSize: 14, fontWeight: "800" },
-  errorBanner: {
-    marginBottom: 18,
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: "#fff4f4",
-    borderColor: "#ffcaca",
-    borderWidth: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
+  errorBanner: { marginBottom: 18, padding: 14, borderRadius: 12, backgroundColor: "#fff4f4", borderColor: "#ffcaca", borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 12 },
   errorBannerText: { flex: 1, color: "#9c2525", fontSize: 13, lineHeight: 18 },
   retryText: { color: colors.blue, fontSize: 13, fontWeight: "900" },
   pressed: { opacity: 0.74 },
