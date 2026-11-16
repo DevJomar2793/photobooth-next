@@ -1,5 +1,5 @@
 import { SymbolView } from "expo-symbols";
-import { Image, Modal, Pressable, StyleSheet } from "react-native";
+import { Image, Modal, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors } from "@/theme";
@@ -27,21 +27,25 @@ export default function GalleryImagePreviewModal({
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.screen}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.closeButton,
-            pressed && styles.pressed,
-          ]}
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel="Close full-screen photo preview"
-        >
-          <SymbolView
-            name={{ ios: "xmark", android: "close", web: "close" }}
-            size={24}
-            tintColor={colors.white}
-          />
-        </Pressable>
+        <View style={styles.closeBar}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.closeButton,
+              pressed && styles.pressed,
+            ]}
+            hitSlop={12}
+            pressRetentionOffset={16}
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Close full-screen photo preview"
+          >
+            <SymbolView
+              name={{ ios: "xmark", android: "close", web: "close" }}
+              size={24}
+              tintColor={colors.white}
+            />
+          </Pressable>
+        </View>
 
         <Image
           source={{ uri: imageUrl }}
@@ -58,14 +62,14 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: "#020817",
-    alignItems: "center",
+  },
+  closeBar: {
+    minHeight: 66,
+    paddingHorizontal: 16,
+    alignItems: "flex-end",
     justifyContent: "center",
   },
   closeButton: {
-    position: "absolute",
-    top: 14,
-    right: 16,
-    zIndex: 1,
     width: 46,
     height: 46,
     borderRadius: 23,
@@ -74,8 +78,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   image: {
+    flex: 1,
     width: "100%",
-    height: "100%",
   },
   pressed: {
     opacity: 0.7,
