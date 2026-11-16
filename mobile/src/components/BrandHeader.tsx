@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { type Href, Link, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -8,9 +8,13 @@ import { colors } from "@/theme";
 
 interface BrandHeaderProps {
   showExit?: boolean;
+  backHref?: "/capture" | "/templates";
 }
 
-export default function BrandHeader({ showExit = false }: BrandHeaderProps) {
+export default function BrandHeader({
+  showExit = false,
+  backHref,
+}: BrandHeaderProps) {
   const router = useRouter();
   const { resetSession } = useBoothSession();
 
@@ -21,24 +25,53 @@ export default function BrandHeader({ showExit = false }: BrandHeaderProps) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <View style={styles.header}>
-        <View style={styles.brandMark}>
+      <View style={[styles.header, backHref && styles.headerWithBack]}>
+        {backHref ? (
+          <Link href={backHref as Href} asChild>
+            <Pressable
+              style={({ pressed }) => [
+                styles.backButton,
+                pressed && styles.buttonPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+            >
+              <SymbolView
+                name={{ ios: "chevron.left", android: "arrow_back", web: "arrow_back" }}
+                size={24}
+                tintColor={colors.navy}
+              />
+            </Pressable>
+          </Link>
+        ) : null}
+
+        <View style={[styles.brandMark, backHref && styles.brandMarkWithBack]}>
           <SymbolView
             name={{
               ios: "camera.fill",
               android: "photo_camera",
               web: "photo_camera",
             }}
-            size={31}
+            size={backHref ? 27 : 31}
             tintColor={colors.white}
           />
         </View>
 
         <View style={styles.brandCopy}>
-          <Text style={styles.brandName} numberOfLines={1}>
+          <Text
+            style={[styles.brandName, backHref && styles.brandNameWithBack]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.82}
+          >
             SCHOOL BOOTH
           </Text>
-          <Text style={styles.brandTagline} numberOfLines={1}>
+          <Text
+            style={[styles.brandTagline, backHref && styles.brandTaglineWithBack]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.72}
+          >
             SNAP • SMILE • CREATE MEMORIES
           </Text>
         </View>
@@ -47,7 +80,8 @@ export default function BrandHeader({ showExit = false }: BrandHeaderProps) {
           <Pressable
             style={({ pressed }) => [
               styles.exitButton,
-              pressed && styles.exitButtonPressed,
+              backHref && styles.exitButtonWithBack,
+              pressed && styles.buttonPressed,
             ]}
             onPress={handleExit}
             accessibilityLabel="Exit photo booth"
@@ -82,6 +116,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
   },
+  headerWithBack: {
+    minHeight: 72,
+    paddingHorizontal: 12,
+    gap: 8,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 13,
+    borderColor: colors.border,
+    borderWidth: 1,
+    backgroundColor: colors.lightBlue,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   brandMark: {
     width: 50,
     height: 50,
@@ -89,6 +138,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.navy,
     alignItems: "center",
     justifyContent: "center",
+  },
+  brandMarkWithBack: {
+    width: 44,
+    height: 44,
+    borderRadius: 13,
   },
   brandCopy: {
     flex: 1,
@@ -100,12 +154,20 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: -0.7,
   },
+  brandNameWithBack: {
+    fontSize: 17,
+    letterSpacing: -0.6,
+  },
   brandTagline: {
     color: colors.muted,
     fontSize: 9,
     fontWeight: "800",
     letterSpacing: 1.2,
     marginTop: 2,
+  },
+  brandTaglineWithBack: {
+    fontSize: 7,
+    letterSpacing: 0.65,
   },
   exitButton: {
     minHeight: 42,
@@ -118,7 +180,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
-  exitButtonPressed: {
+  exitButtonWithBack: {
+    minHeight: 44,
+    borderRadius: 13,
+    paddingHorizontal: 8,
+    gap: 4,
+  },
+  buttonPressed: {
     opacity: 0.72,
   },
   exitText: {

@@ -27,11 +27,17 @@ export default function RootLayout() {
         />
         <Stack.Screen
           name="templates"
-          options={{ headerShown: true, header: () => <BrandHeader showExit /> }}
+          options={{
+            headerShown: true,
+            header: () => <BrandHeader showExit backHref="/capture" />,
+          }}
         />
         <Stack.Screen
           name="preview"
-          options={{ headerShown: true, header: () => <BrandHeader showExit /> }}
+          options={{
+            headerShown: true,
+            header: () => <BrandHeader showExit backHref="/templates" />,
+          }}
         />
       </Stack>
       <StatusBar style="dark" />

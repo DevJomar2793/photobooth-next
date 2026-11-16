@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors } from "@/theme";
 
 interface BoothPageHeaderProps {
-  backHref: "/capture" | "/templates";
+  backHref?: "/capture" | "/templates";
   title: string;
   description: string;
 }
@@ -17,19 +17,24 @@ export default function BoothPageHeader({
 }: BoothPageHeaderProps) {
   return (
     <View style={styles.header}>
-      <Link href={backHref as Href} asChild>
-        <Pressable
-          style={({ pressed }) => [styles.backButton, pressed && styles.buttonPressed]}
-          accessibilityLabel={`Go back from ${title}`}
-        >
-          <SymbolView
-            name={{ ios: "chevron.left", android: "arrow_back", web: "arrow_back" }}
-            size={21}
-            tintColor={colors.navy}
-          />
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-      </Link>
+      {backHref ? (
+        <Link href={backHref as Href} asChild>
+          <Pressable
+            style={({ pressed }) => [
+              styles.backButton,
+              pressed && styles.buttonPressed,
+            ]}
+            accessibilityLabel={`Go back from ${title}`}
+          >
+            <SymbolView
+              name={{ ios: "chevron.left", android: "arrow_back", web: "arrow_back" }}
+              size={21}
+              tintColor={colors.navy}
+            />
+            <Text style={styles.backText}>Back</Text>
+          </Pressable>
+        </Link>
+      ) : null}
 
       <View style={styles.copy}>
         <Text style={styles.title}>{title}</Text>

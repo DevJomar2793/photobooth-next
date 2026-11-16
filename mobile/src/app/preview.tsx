@@ -86,7 +86,6 @@ export default function PreviewScreen() {
         showsVerticalScrollIndicator={false}
       >
         <BoothPageHeader
-          backHref="/templates"
           title="Preview Unavailable"
           description="Four captured photos are required to generate your template."
         />
@@ -221,7 +220,6 @@ export default function PreviewScreen() {
       showsVerticalScrollIndicator={false}
     >
       <BoothPageHeader
-        backHref="/templates"
         title="Preview Your Photo"
         description="Here’s your finished photo and the available save options."
       />

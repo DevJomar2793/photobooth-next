@@ -35,7 +35,6 @@ export default function TemplatesScreen() {
         showsVerticalScrollIndicator={false}
       >
         <BoothPageHeader
-          backHref="/capture"
           title="Photos Needed"
           description="Capture all four photos before choosing a template."
         />
@@ -83,7 +82,6 @@ export default function TemplatesScreen() {
           showsVerticalScrollIndicator={false}
         >
           <BoothPageHeader
-            backHref="/capture"
             title="Select a Template"
             description="Choose a design, then preview it with your four photos."
           />
