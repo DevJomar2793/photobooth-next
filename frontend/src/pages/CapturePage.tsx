@@ -28,6 +28,7 @@ interface CapturePageProps {
 }
 
 const timerOptions = [0, 3, 5]
+const MAX_CAPTURED_PHOTOS = 4
 
 function CapturePage({
   photos,
@@ -41,6 +42,7 @@ function CapturePage({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const modalCloseTimerRef = useRef<number | null>(null)
+  const limitCloseTimerRef = useRef<number | null>(null)
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>('requesting')
   const [retryKey, setRetryKey] = useState(0)
   const [timerSeconds, setTimerSeconds] = useState(0)
@@ -48,11 +50,17 @@ function CapturePage({
   const [isTakingPhoto, setIsTakingPhoto] = useState(false)
   const [previewSelection, setPreviewSelection] = useState<PreviewSelection>(null)
   const [isPreviewClosing, setIsPreviewClosing] = useState(false)
+  const [isLimitNotificationOpen, setIsLimitNotificationOpen] = useState(false)
+  const [isLimitNotificationClosing, setIsLimitNotificationClosing] = useState(false)
 
   useEffect(() => {
     return () => {
       if (modalCloseTimerRef.current !== null) {
         window.clearTimeout(modalCloseTimerRef.current)
+      }
+
+      if (limitCloseTimerRef.current !== null) {
+        window.clearTimeout(limitCloseTimerRef.current)
       }
     }
   }, [])
@@ -112,15 +120,20 @@ function CapturePage({
     error: 'Unable to Start Camera',
   }[cameraStatus]
 
-  const canTakePhoto =
-    cameraStatus === 'ready' && !isTakingPhoto && photos.length < 4
+  const canUseShutter = cameraStatus === 'ready' && !isTakingPhoto
 
   function wait(milliseconds: number) {
     return new Promise((resolve) => window.setTimeout(resolve, milliseconds))
   }
 
   async function handleTakePhoto() {
-    if (!canTakePhoto || !videoRef.current || !canvasRef.current) {
+    if (photos.length >= MAX_CAPTURED_PHOTOS) {
+      setIsLimitNotificationClosing(false)
+      setIsLimitNotificationOpen(true)
+      return
+    }
+
+    if (!canUseShutter || !videoRef.current || !canvasRef.current) {
       return
     }
 
@@ -219,6 +232,19 @@ function CapturePage({
     }, 180)
   }
 
+  function closeLimitNotification() {
+    if (!isLimitNotificationOpen || isLimitNotificationClosing) {
+      return
+    }
+
+    setIsLimitNotificationClosing(true)
+    limitCloseTimerRef.current = window.setTimeout(() => {
+      setIsLimitNotificationOpen(false)
+      setIsLimitNotificationClosing(false)
+      limitCloseTimerRef.current = null
+    }, 180)
+  }
+
   const previewPhotos =
     previewSelection === 'all'
       ? photos
@@ -301,12 +327,12 @@ function CapturePage({
                     className="shutter-button"
                     type="button"
                     onClick={handleTakePhoto}
-                    disabled={!canTakePhoto}
-                    aria-label="Take photo"
+                    disabled={!canUseShutter}
+                    aria-label={photos.length >= MAX_CAPTURED_PHOTOS ? 'Capture limit reached' : 'Take photo'}
                   >
                     <CameraIcon className="capture-shutter-icon" />
                   </button>
-                  <strong>{photos.length === 4 ? 'Photos Complete' : 'Take Photo'}</strong>
+                  <strong>{photos.length >= MAX_CAPTURED_PHOTOS ? 'Photos Complete' : 'Take Photo'}</strong>
                 </div>
 
                 <button
@@ -317,6 +343,9 @@ function CapturePage({
                 >
                   <EyeIcon />
                   Preview
+                  <span className="preview-photo-count">
+                    {photos.length}/{MAX_CAPTURED_PHOTOS}
+                  </span>
                 </button>
               </div>
 
@@ -340,7 +369,7 @@ function CapturePage({
               </div>
 
               <div className="captured-grid">
-                {Array.from({ length: 4 }).map((_, index) => {
+                {Array.from({ length: MAX_CAPTURED_PHOTOS }).map((_, index) => {
                   const photo = photos[index]
 
                   return (
@@ -385,7 +414,7 @@ function CapturePage({
               className="booth-next-button"
               type="button"
               onClick={onNext}
-              disabled={photos.length !== 4}
+              disabled={photos.length !== MAX_CAPTURED_PHOTOS}
             >
               Next
               <ArrowIcon />
@@ -444,6 +473,52 @@ function CapturePage({
                 Done
               </button>
             </div>
+          </section>
+        </div>
+      )}
+
+      {isLimitNotificationOpen && (
+        <div
+          className={`notification-modal-backdrop modal-animated-backdrop ${
+            isLimitNotificationClosing ? 'is-closing' : ''
+          }`}
+          role="presentation"
+          onMouseDown={closeLimitNotification}
+        >
+          <section
+            className="notification-modal notification-modal-warning modal-animated-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="capture-limit-title"
+            aria-describedby="capture-limit-message"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              className="notification-modal-close"
+              type="button"
+              onClick={closeLimitNotification}
+              aria-label="Close capture limit notification"
+            >
+              ×
+            </button>
+
+            <div className="notification-modal-icon" aria-hidden="true">
+              <CameraIcon />
+            </div>
+
+            <h2 id="capture-limit-title">Capture limit reached</h2>
+            <p id="capture-limit-message">
+              Maximum capture limit reached. You can only capture up to 4 photos.
+            </p>
+
+            <button
+              className="notification-modal-button"
+              type="button"
+              onClick={closeLimitNotification}
+              autoFocus
+            >
+              Okay
+            </button>
           </section>
         </div>
       )}

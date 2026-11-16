@@ -325,6 +325,16 @@
   height: 28px;
 }
 
+.preview-photo-count {
+  min-width: 45px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #d9eaff;
+  color: #0758d8;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
 .capture-canvas {
   position: absolute;
   width: 1px;

@@ -126,12 +126,19 @@ export default function CaptureScreen() {
   };
 
   const handleTakePhoto = () => {
+    if (capturedPhotos.length >= MAX_SESSION_PHOTOS) {
+      Alert.alert(
+        "Capture limit reached",
+        "Maximum capture limit reached. You can only capture up to 4 photos.",
+      );
+      return;
+    }
+
     const cannotCapture =
       captureLockedRef.current ||
       !permission?.granted ||
       !isCameraActive ||
-      !isCameraReady ||
-      capturedPhotos.length >= MAX_SESSION_PHOTOS;
+      !isCameraReady;
 
     if (cannotCapture) {
       return;
@@ -198,8 +205,7 @@ export default function CaptureScreen() {
     isBusy ||
     !permission?.granted ||
     !isCameraActive ||
-    !isCameraReady ||
-    hasReachedPhotoLimit;
+    !isCameraReady;
   const isPreviewDisabled = capturedPhotos.length === 0 || isBusy;
   const isCameraControlDisabled = !permission?.granted || isCapturing;
   const isFlipDisabled = !isCameraActive || !isCameraReady || isBusy;
@@ -460,7 +466,11 @@ export default function CaptureScreen() {
               onPress={handleTakePhoto}
               disabled={isCaptureDisabled}
               accessibilityRole="button"
-              accessibilityLabel="Take photo"
+              accessibilityLabel={
+                hasReachedPhotoLimit
+                  ? "Capture limit reached"
+                  : "Take photo"
+              }
               accessibilityState={{ disabled: isCaptureDisabled }}
             >
               <View
