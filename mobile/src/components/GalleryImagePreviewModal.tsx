@@ -27,7 +27,7 @@ export default function GalleryImagePreviewModal({
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.screen}>
-        <View style={styles.closeBar}>
+        <View style={styles.closeBar} pointerEvents="box-none">
           <Pressable
             style={({ pressed }) => [
               styles.closeButton,
@@ -35,6 +35,7 @@ export default function GalleryImagePreviewModal({
             ]}
             hitSlop={12}
             pressRetentionOffset={16}
+            onPressIn={onClose}
             onPress={onClose}
             accessibilityRole="button"
             accessibilityLabel="Close full-screen photo preview"
@@ -43,6 +44,7 @@ export default function GalleryImagePreviewModal({
               name={{ ios: "xmark", android: "close", web: "close" }}
               size={24}
               tintColor={colors.white}
+              pointerEvents="none"
             />
           </Pressable>
         </View>
