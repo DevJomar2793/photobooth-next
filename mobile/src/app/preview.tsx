@@ -1,7 +1,19 @@
 import { useRouter } from "expo-router";
+import * as MediaLibrary from "expo-media-library";
 import { SymbolView } from "expo-symbols";
-import type { ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  PixelRatio,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import ViewShot, { releaseCapture, type ViewShotRef } from "react-native-view-shot";
 
 import {
   MAX_SESSION_PHOTOS,
@@ -10,8 +22,14 @@ import {
 import BoothPageHeader from "@/components/BoothPageHeader";
 import PageFooter from "@/components/PageFooter";
 import PhotoTemplateCanvas from "@/components/PhotoTemplateCanvas";
+import { uploadImage } from "@/api/images";
 import { templateOptions } from "@/data/templateOptions";
 import { colors } from "@/theme";
+
+type PreviewAction = "download" | "upload" | null;
+
+const OUTPUT_WIDTH = 1080;
+const OUTPUT_HEIGHT = 1440;
 
 interface ActionSectionProps {
   title: string;
@@ -39,6 +57,10 @@ function ActionSection({ title, description, icon, children }: ActionSectionProp
 
 export default function PreviewScreen() {
   const router = useRouter();
+  const previewRef = useRef<ViewShotRef>(null);
+  const generatedImageUriRef = useRef<string | null>(null);
+  const [activeAction, setActiveAction] = useState<PreviewAction>(null);
+  const [isSaved, setIsSaved] = useState(false);
   const {
     capturedPhotos,
     selectedTemplateId,
@@ -47,6 +69,14 @@ export default function PreviewScreen() {
   const selectedTemplate =
     templateOptions.find((template) => template.id === selectedTemplateId) ??
     templateOptions[0];
+
+  useEffect(() => {
+    return () => {
+      if (generatedImageUriRef.current) {
+        releaseCapture(generatedImageUriRef.current);
+      }
+    };
+  }, []);
 
   if (capturedPhotos.length !== MAX_SESSION_PHOTOS) {
     return (
@@ -93,6 +123,97 @@ export default function PreviewScreen() {
     router.replace("/capture");
   };
 
+  const getGeneratedImageUri = async () => {
+    if (generatedImageUriRef.current) {
+      return generatedImageUriRef.current;
+    }
+
+    if (!previewRef.current) {
+      throw new Error("The photo preview is not ready yet.");
+    }
+
+    const imageUri = await previewRef.current.capture();
+
+    generatedImageUriRef.current = imageUri;
+    return imageUri;
+  };
+
+  const handleDownload = async () => {
+    if (activeAction) {
+      return;
+    }
+
+    setActiveAction("download");
+
+    try {
+      const currentPermission = await MediaLibrary.getPermissionsAsync(true, []);
+      const permission = currentPermission.granted
+        ? currentPermission
+        : await MediaLibrary.requestPermissionsAsync(true, []);
+
+      if (!permission.granted) {
+        if (!permission.canAskAgain) {
+          Alert.alert(
+            "Photo Access Required",
+            "Enable photo access in your device settings to download this image.",
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Open Settings", onPress: () => void Linking.openSettings() },
+            ],
+          );
+        } else {
+          Alert.alert(
+            "Permission Not Granted",
+            "Photo access is required to download the image to your phone.",
+          );
+        }
+        return;
+      }
+
+      const imageUri = await getGeneratedImageUri();
+      await MediaLibrary.Asset.create(imageUri);
+
+      Alert.alert("Download Complete", "Your photo was saved to your device gallery.");
+    } catch {
+      Alert.alert(
+        "Download Failed",
+        "Unable to download your photo. Please try again.",
+      );
+    } finally {
+      setActiveAction(null);
+    }
+  };
+
+  const handleSave = async () => {
+    if (isSaved) {
+      router.replace("/gallery");
+      return;
+    }
+
+    if (activeAction) {
+      return;
+    }
+
+    setActiveAction("upload");
+
+    try {
+      const imageUri = await getGeneratedImageUri();
+      await uploadImage(imageUri);
+      setIsSaved(true);
+      Alert.alert("Photo Saved", "Your photo was saved to the School Booth gallery.");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to save your photo. Please try again.";
+      Alert.alert("Save Failed", message);
+    } finally {
+      setActiveAction(null);
+    }
+  };
+
+  const isBusy = activeAction !== null;
+
   return (
     <ScrollView
       style={styles.screen}
@@ -106,18 +227,30 @@ export default function PreviewScreen() {
       />
 
       <View style={styles.photoPanel}>
-        <PhotoTemplateCanvas
-          template={selectedTemplate}
-          photos={capturedPhotos}
-          style={styles.previewCanvas}
-          accessibilityLabel={`Finished ${selectedTemplate.name} School Booth photo`}
-        />
+        <ViewShot
+          ref={previewRef}
+          style={styles.previewCapture}
+          options={{
+            format: "jpg",
+            quality: 0.92,
+            result: "tmpfile",
+            width: OUTPUT_WIDTH / PixelRatio.get(),
+            height: OUTPUT_HEIGHT / PixelRatio.get(),
+          }}
+        >
+          <PhotoTemplateCanvas
+            template={selectedTemplate}
+            photos={capturedPhotos}
+            style={styles.previewCanvas}
+            accessibilityLabel={`Finished ${selectedTemplate.name} School Booth photo`}
+          />
+        </ViewShot>
       </View>
 
       <View style={styles.actionsPanel}>
         <ActionSection
           title="Save Your Photo"
-          description="Saving and downloading will be connected in a later step."
+          description="Download a copy to your phone or save it to your School Booth gallery."
           icon={
             <SymbolView
               name={{ ios: "square.and.arrow.down", android: "download", web: "download" }}
@@ -127,34 +260,62 @@ export default function PreviewScreen() {
           }
         >
           <Pressable
-            style={[styles.actionButton, styles.primaryDisabledButton]}
-            disabled
+            style={({ pressed }) => [
+              styles.actionButton,
+              styles.primaryButton,
+              isBusy && styles.disabledButton,
+              pressed && !isBusy && styles.pressed,
+            ]}
+            disabled={isBusy}
+            onPress={handleDownload}
             accessibilityLabel="Download image"
-            accessibilityState={{ disabled: true }}
+            accessibilityState={{ disabled: isBusy, busy: activeAction === "download" }}
           >
-            <SymbolView
-              name={{ ios: "arrow.down.to.line", android: "download", web: "download" }}
-              size={21}
-              tintColor={colors.white}
-            />
-            <Text style={styles.primaryButtonText}>Download Image</Text>
+            {activeAction === "download" ? (
+              <ActivityIndicator color={colors.white} />
+            ) : (
+              <SymbolView
+                name={{ ios: "arrow.down.to.line", android: "download", web: "download" }}
+                size={21}
+                tintColor={colors.white}
+              />
+            )}
+            <Text style={styles.primaryButtonText}>
+              {activeAction === "download" ? "Downloading..." : "Download Image"}
+            </Text>
           </Pressable>
           <Pressable
-            style={[styles.actionButton, styles.secondaryDisabledButton]}
-            disabled
-            accessibilityLabel="Save to gallery"
-            accessibilityState={{ disabled: true }}
+            style={({ pressed }) => [
+              styles.actionButton,
+              styles.secondaryButton,
+              isBusy && styles.disabledButton,
+              pressed && !isBusy && styles.pressed,
+            ]}
+            disabled={isBusy}
+            onPress={handleSave}
+            accessibilityLabel={isSaved ? "View gallery" : "Save to gallery"}
+            accessibilityState={{ disabled: isBusy, busy: activeAction === "upload" }}
           >
-            <SymbolView
-              name={{
-                ios: "photo.on.rectangle",
-                android: "photo_library",
-                web: "photo_library",
-              }}
-              size={21}
-              tintColor={colors.navy}
-            />
-            <Text style={styles.secondaryButtonText}>Save to Gallery</Text>
+            {activeAction === "upload" ? (
+              <ActivityIndicator color={colors.navy} />
+            ) : (
+              <SymbolView
+                name={{
+                  ios: isSaved ? "arrow.right" : "photo.on.rectangle",
+                  android: isSaved ? "arrow_forward" : "photo_library",
+                  web: isSaved ? "arrow_forward" : "photo_library",
+                }}
+                size={21}
+                tintColor={colors.navy}
+              />
+            )}
+            <Text style={styles.secondaryButtonText}>
+              {activeAction === "upload"
+                ? "Saving..."
+                : isSaved
+                  ? "View Gallery"
+                  : "Save to Gallery"}
+            </Text>
           </Pressable>
         </ActionSection>
 
@@ -237,10 +398,14 @@ const styles = StyleSheet.create({
     padding: 14,
     alignItems: "center",
   },
-  previewCanvas: {
+  previewCapture: {
     width: "100%",
     maxWidth: 340,
     borderRadius: 13,
+    overflow: "hidden",
+  },
+  previewCanvas: {
+    width: "100%",
   },
   actionsPanel: {
     backgroundColor: colors.white,
@@ -292,15 +457,22 @@ const styles = StyleSheet.create({
     gap: 9,
     paddingHorizontal: 16,
   },
-  primaryDisabledButton: {
+  primaryButton: {
     backgroundColor: colors.blue,
-    opacity: 0.58,
+  },
+  secondaryButton: {
+    backgroundColor: colors.lightBlue,
+    borderColor: colors.border,
+    borderWidth: 1,
   },
   secondaryDisabledButton: {
     backgroundColor: colors.lightBlue,
     borderColor: colors.border,
     borderWidth: 1,
     opacity: 0.65,
+  },
+  disabledButton: {
+    opacity: 0.58,
   },
   primaryButtonText: {
     color: colors.white,

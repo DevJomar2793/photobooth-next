@@ -1,0 +1,6 @@
+
+# Local environment variables and credentials
+.env
+*.env
+!.env.example
+.DS_Store

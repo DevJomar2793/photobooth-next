@@ -1,6 +1,11 @@
+import { useFocusEffect } from "expo-router";
 import { SymbolView } from "expo-symbols";
+import { useCallback, useState } from "react";
 import {
-  ScrollView,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -8,20 +13,109 @@ import {
   View,
 } from "react-native";
 
+import {
+  getImages,
+  getImageUrl,
+  type ImageListItemResponse,
+} from "@/api/images";
 import PageFooter from "@/components/PageFooter";
+import { TEMPLATE_HEIGHT, TEMPLATE_WIDTH } from "@/data/templateOptions";
 import { colors } from "@/theme";
+
+interface GalleryImageCardProps {
+  image: ImageListItemResponse;
+  width: number;
+}
+
+function GalleryImageCard({ image, width }: GalleryImageCardProps) {
+  const [hasImageError, setHasImageError] = useState(false);
+  const createdDate = new Date(image.created_at);
+  const dateLabel = Number.isNaN(createdDate.getTime())
+    ? "Saved photo"
+    : createdDate.toLocaleDateString();
+
+  return (
+    <View style={[styles.photoCard, { width }]}>
+      {hasImageError ? (
+        <View style={styles.imageFallback}>
+          <SymbolView
+            name={{ ios: "photo", android: "broken_image", web: "broken_image" }}
+            size={34}
+            tintColor={colors.muted}
+          />
+          <Text style={styles.imageFallbackText}>Image unavailable</Text>
+        </View>
+      ) : (
+        <Image
+          source={{ uri: getImageUrl(image.image_url) }}
+          style={styles.galleryImage}
+          resizeMode="cover"
+          onError={() => setHasImageError(true)}
+          accessibilityLabel={`Saved School Booth photo from ${dateLabel}`}
+        />
+      )}
+      <View style={styles.photoDetails}>
+        <Text style={styles.photoName} numberOfLines={1}>
+          {image.filename}
+        </Text>
+        <Text style={styles.photoDate}>{dateLabel}</Text>
+      </View>
+    </View>
+  );
+}
 
 export default function GalleryScreen() {
   const { width } = useWindowDimensions();
   const isNarrowScreen = width < 390;
+  const cardWidth = (width - 40 - 12) / 2;
+  const [images, setImages] = useState<ImageListItemResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.page}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-    >
+  const loadImages = useCallback(
+    async (signal?: AbortSignal, isPullToRefresh = false) => {
+      if (isPullToRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+      setError(null);
+
+      try {
+        const savedImages = await getImages(signal);
+        setImages(savedImages);
+      } catch (loadError) {
+        if (signal?.aborted) {
+          return;
+        }
+
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Unable to load your saved photos.",
+        );
+      } finally {
+        if (!signal?.aborted) {
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
+      }
+    },
+    [],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const controller = new AbortController();
+      void loadImages(controller.signal);
+
+      return () => controller.abort();
+    }, [loadImages]),
+  );
+
+  const renderHeader = () => (
+    <>
       <View style={styles.heading}>
         <View style={styles.headingIcon}>
           <SymbolView
@@ -80,11 +174,7 @@ export default function GalleryScreen() {
             accessibilityState={{ disabled: true }}
           >
             <SymbolView
-              name={{
-                ios: "checkmark.square",
-                android: "check_box",
-                web: "check_box",
-              }}
+              name={{ ios: "checkmark.square", android: "check_box", web: "check_box" }}
               size={20}
               tintColor={colors.navy}
             />
@@ -93,6 +183,51 @@ export default function GalleryScreen() {
         </View>
       </View>
 
+      {error && images.length > 0 ? (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorBannerText}>{error}</Text>
+          <Pressable onPress={() => void loadImages()} accessibilityRole="button">
+            <Text style={styles.retryText}>Retry</Text>
+          </Pressable>
+        </View>
+      ) : null}
+    </>
+  );
+
+  const renderEmptyState = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.emptyState}>
+          <ActivityIndicator size="large" color={colors.blue} />
+          <Text style={styles.loadingText}>Loading saved photos...</Text>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.emptyState}>
+          <View style={styles.emptyIcon}>
+            <SymbolView
+              name={{ ios: "exclamationmark.triangle", android: "error", web: "error" }}
+              size={42}
+              tintColor={colors.blue}
+            />
+          </View>
+          <Text style={styles.emptyTitle}>Unable to load photos</Text>
+          <Text style={styles.emptyDescription}>{error}</Text>
+          <Pressable
+            style={({ pressed }) => [styles.retryButton, pressed && styles.pressed]}
+            onPress={() => void loadImages()}
+            accessibilityRole="button"
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
+    return (
       <View style={styles.emptyState}>
         <View style={styles.emptyIcon}>
           <SymbolView
@@ -107,7 +242,7 @@ export default function GalleryScreen() {
         </View>
         <Text style={styles.emptyTitle}>No photos yet</Text>
         <Text style={styles.emptyDescription}>
-          Your captured School Booth memories will appear here.
+          Your saved School Booth memories will appear here.
         </Text>
         <View style={styles.emptyHint}>
           <SymbolView
@@ -118,28 +253,38 @@ export default function GalleryScreen() {
           <Text style={styles.emptyHintText}>Capture good vibes to fill your gallery</Text>
         </View>
       </View>
+    );
+  };
 
-      <PageFooter />
-    </ScrollView>
+  return (
+    <FlatList
+      style={styles.screen}
+      contentContainerStyle={styles.page}
+      data={images}
+      keyExtractor={(image) => image.id.toString()}
+      renderItem={({ item }) => <GalleryImageCard image={item} width={cardWidth} />}
+      numColumns={2}
+      columnWrapperStyle={styles.photoRow}
+      ListHeaderComponent={renderHeader}
+      ListEmptyComponent={renderEmptyState}
+      ListFooterComponent={<PageFooter />}
+      refreshing={isRefreshing}
+      onRefresh={() => void loadImages(undefined, true)}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  screen: { flex: 1, backgroundColor: colors.background },
   page: {
     flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: 24,
     paddingBottom: 24,
   },
-  heading: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
+  heading: { flexDirection: "row", alignItems: "center", gap: 12 },
   headingIcon: {
     width: 50,
     height: 50,
@@ -148,25 +293,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  headingCopy: {
-    flex: 1,
-  },
-  title: {
-    color: colors.navy,
-    fontSize: 30,
-    fontWeight: "900",
-    letterSpacing: -1,
-  },
-  subtitle: {
-    color: colors.muted,
-    fontSize: 14,
-    lineHeight: 19,
-    marginTop: 2,
-  },
-  toolbar: {
-    gap: 10,
-    marginTop: 24,
-  },
+  headingCopy: { flex: 1 },
+  title: { color: colors.navy, fontSize: 30, fontWeight: "900", letterSpacing: -1 },
+  subtitle: { color: colors.muted, fontSize: 14, lineHeight: 19, marginTop: 2 },
+  toolbar: { gap: 10, marginTop: 24, marginBottom: 18 },
   searchField: {
     height: 50,
     backgroundColor: colors.white,
@@ -178,19 +308,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
   },
-  searchInput: {
-    flex: 1,
-    color: colors.muted,
-    fontSize: 15,
-    paddingVertical: 0,
-  },
-  toolbarActions: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  toolbarActionsNarrow: {
-    flexDirection: "column",
-  },
+  searchInput: { flex: 1, color: colors.muted, fontSize: 15, paddingVertical: 0 },
+  toolbarActions: { flexDirection: "row", gap: 10 },
+  toolbarActionsNarrow: { flexDirection: "column" },
   filterControl: {
     flex: 1,
     minHeight: 48,
@@ -216,19 +336,35 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
   },
-  toolbarControlNarrow: {
-    flex: 0,
+  toolbarControlNarrow: { flex: 0 },
+  controlText: { color: colors.muted, fontSize: 14, fontWeight: "600" },
+  selectText: { color: colors.navy, fontSize: 14, fontWeight: "800" },
+  photoRow: { gap: 12 },
+  photoCard: {
+    marginBottom: 12,
+    overflow: "hidden",
+    backgroundColor: colors.white,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 16,
   },
-  controlText: {
-    color: colors.muted,
-    fontSize: 14,
-    fontWeight: "600",
+  galleryImage: {
+    width: "100%",
+    aspectRatio: TEMPLATE_WIDTH / TEMPLATE_HEIGHT,
+    backgroundColor: colors.lightBlue,
   },
-  selectText: {
-    color: colors.navy,
-    fontSize: 14,
-    fontWeight: "800",
+  imageFallback: {
+    width: "100%",
+    aspectRatio: TEMPLATE_WIDTH / TEMPLATE_HEIGHT,
+    backgroundColor: colors.lightBlue,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
   },
+  imageFallbackText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
+  photoDetails: { padding: 10 },
+  photoName: { color: colors.navy, fontSize: 12, fontWeight: "800" },
+  photoDate: { color: colors.muted, fontSize: 11, marginTop: 3 },
   emptyState: {
     flexGrow: 1,
     minHeight: 360,
@@ -236,7 +372,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderWidth: 1,
     borderRadius: 20,
-    marginTop: 18,
     paddingHorizontal: 28,
     paddingVertical: 46,
     alignItems: "center",
@@ -250,12 +385,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  emptyTitle: {
-    color: colors.navy,
-    fontSize: 23,
-    fontWeight: "900",
-    marginTop: 18,
-  },
+  emptyTitle: { color: colors.navy, fontSize: 23, fontWeight: "900", marginTop: 18 },
   emptyDescription: {
     color: colors.muted,
     fontSize: 15,
@@ -280,4 +410,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
   },
+  loadingText: { color: colors.muted, fontSize: 14, fontWeight: "700", marginTop: 14 },
+  retryButton: {
+    minHeight: 46,
+    marginTop: 20,
+    paddingHorizontal: 22,
+    borderRadius: 12,
+    backgroundColor: colors.blue,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  retryButtonText: { color: colors.white, fontSize: 14, fontWeight: "800" },
+  errorBanner: {
+    marginBottom: 18,
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: "#fff4f4",
+    borderColor: "#ffcaca",
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  errorBannerText: { flex: 1, color: "#9c2525", fontSize: 13, lineHeight: 18 },
+  retryText: { color: colors.blue, fontSize: 13, fontWeight: "900" },
+  pressed: { opacity: 0.74 },
 });
