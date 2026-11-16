@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   MAX_SESSION_PHOTOS,
@@ -75,97 +76,100 @@ export default function TemplatesScreen() {
 
   return (
     <>
-      <ScrollView
-        style={styles.screen}
-        contentContainerStyle={styles.page}
-        showsVerticalScrollIndicator={false}
-      >
-        <BoothPageHeader
-          backHref="/capture"
-          title="Select a Template"
-          description="Choose a design, then preview it with your four photos."
-        />
+      <View style={styles.screen}>
+        <ScrollView
+          style={styles.templateList}
+          contentContainerStyle={styles.page}
+          showsVerticalScrollIndicator={false}
+        >
+          <BoothPageHeader
+            backHref="/capture"
+            title="Select a Template"
+            description="Choose a design, then preview it with your four photos."
+          />
 
-        <View style={styles.templateGrid}>
-          {templateOptions.map((template) => {
-            const isSelected = template.id === selectedTemplate.id;
+          <View style={styles.templateGrid}>
+            {templateOptions.map((template) => {
+              const isSelected = template.id === selectedTemplate.id;
 
-            return (
-              <Pressable
-                style={({ pressed }) => [
-                  styles.templateOption,
-                  pressed && styles.buttonPressed,
-                ]}
-                onPress={() => selectTemplate(template.id)}
-                accessibilityRole="button"
-                accessibilityLabel={`Select ${template.name} template`}
-                accessibilityState={{ selected: isSelected }}
-                key={template.id}
-              >
-                <View
-                  style={[
-                    styles.templateCard,
-                    isSelected && styles.templateCardSelected,
+              return (
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.templateOption,
+                    pressed && styles.buttonPressed,
                   ]}
+                  onPress={() => selectTemplate(template.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Select ${template.name} template`}
+                  accessibilityState={{ selected: isSelected }}
+                  key={template.id}
                 >
-                  <Image
-                    source={template.image}
-                    style={styles.templateImage}
-                    resizeMode="cover"
-                    accessibilityLabel={`${template.name} template preview`}
-                  />
-                  {isSelected && (
-                    <View style={styles.selectedBadge}>
-                      <SymbolView
-                        name={{ ios: "checkmark", android: "check", web: "check" }}
-                        size={19}
-                        tintColor={colors.white}
-                      />
-                    </View>
-                  )}
-                </View>
-                <Text
-                  style={[
-                    styles.templateName,
-                    isSelected && styles.templateNameSelected,
-                  ]}
-                >
-                  {template.name}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <View style={styles.previewPanel}>
-          <View style={styles.previewCopy}>
-            <Text style={styles.previewEyebrow}>SELECTED TEMPLATE</Text>
-            <Text style={styles.previewTitle}>{selectedTemplate.name}</Text>
-            <Text style={styles.previewDescription}>
-              Preview this design with your four captured photos before continuing.
-            </Text>
+                  <View
+                    style={[
+                      styles.templateCard,
+                      isSelected && styles.templateCardSelected,
+                    ]}
+                  >
+                    <Image
+                      source={template.image}
+                      style={styles.templateImage}
+                      resizeMode="cover"
+                      accessibilityLabel={`${template.name} template preview`}
+                    />
+                    {isSelected && (
+                      <View style={styles.selectedBadge}>
+                        <SymbolView
+                          name={{ ios: "checkmark", android: "check", web: "check" }}
+                          size={19}
+                          tintColor={colors.white}
+                        />
+                      </View>
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.templateName,
+                      isSelected && styles.templateNameSelected,
+                    ]}
+                  >
+                    {template.name}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.previewButton,
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={() => setIsPreviewOpen(true)}
-            accessibilityRole="button"
-            accessibilityLabel={`Preview ${selectedTemplate.name} with captured photos`}
-          >
-            <SymbolView
-              name={{ ios: "eye.fill", android: "visibility", web: "visibility" }}
-              size={22}
-              tintColor={colors.white}
-            />
-            <Text style={styles.previewButtonText}>Preview with My Photos</Text>
-          </Pressable>
-        </View>
+          <PageFooter />
+        </ScrollView>
 
-        <PageFooter />
-      </ScrollView>
+        <SafeAreaView style={styles.previewDock} edges={["bottom"]}>
+          <View style={styles.previewPanel}>
+            <View style={styles.previewCopy}>
+              <Text style={styles.previewEyebrow}>SELECTED TEMPLATE</Text>
+              <Text style={styles.previewTitle} numberOfLines={1}>
+                {selectedTemplate.name}
+              </Text>
+            </View>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.previewButton,
+                pressed && styles.buttonPressed,
+              ]}
+              onPress={() => setIsPreviewOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel={`Preview ${selectedTemplate.name} with captured photos`}
+            >
+              <SymbolView
+                name={{ ios: "eye.fill", android: "visibility", web: "visibility" }}
+                size={22}
+                tintColor={colors.white}
+              />
+              <Text style={styles.previewButtonText}>Preview with My Photos</Text>
+            </Pressable>
+          </View>
+        </SafeAreaView>
+      </View>
 
       <TemplatePreviewModal
         visible={isPreviewOpen}
@@ -187,6 +191,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 18,
     paddingBottom: 24,
+  },
+  templateList: {
+    flex: 1,
   },
   templateGrid: {
     flexDirection: "row",
@@ -247,9 +254,19 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderWidth: 1,
     borderRadius: 18,
-    marginTop: 20,
-    padding: 14,
-    gap: 14,
+    padding: 12,
+    gap: 10,
+    shadowColor: colors.navy,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  previewDock: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 12,
+    backgroundColor: colors.background,
   },
   previewCopy: {
     gap: 3,
@@ -262,13 +279,8 @@ const styles = StyleSheet.create({
   },
   previewTitle: {
     color: colors.navy,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "900",
-  },
-  previewDescription: {
-    color: colors.muted,
-    fontSize: 12,
-    lineHeight: 17,
   },
   previewButton: {
     minHeight: 54,
