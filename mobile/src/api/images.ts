@@ -18,6 +18,48 @@ interface ApiErrorResponse {
   detail?: string;
 }
 
+async function apiRequest(path: string, options: RequestInit = {}) {
+  const apiUrl = getApiBaseUrl();
+  const requestUrl = `${apiUrl}${path}`;
+  const method = options.method ?? "GET";
+
+  if (__DEV__) {
+    console.info(`[API] ${method} ${requestUrl}`);
+  }
+
+  try {
+    const response = await fetch(requestUrl, options);
+
+    if (__DEV__) {
+      console.info(`[API] ${method} ${requestUrl} -> ${response.status}`);
+    }
+
+    return response;
+  } catch (error) {
+    if (options.signal?.aborted) {
+      throw error;
+    }
+
+    if (__DEV__) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown network error";
+      console.error(`[API] ${method} ${requestUrl} failed: ${errorMessage}`);
+    }
+
+    throw new Error(
+      `Could not connect to the server at ${apiUrl}. Make sure FastAPI is running and your device is on the same Wi-Fi network.`,
+    );
+  }
+}
+
+async function readJson<T>(response: Response, errorMessage: string) {
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new Error(errorMessage);
+  }
+}
+
 async function getApiError(response: Response, fallbackMessage: string) {
   try {
     const errorResponse = (await response.json()) as ApiErrorResponse;
@@ -33,7 +75,7 @@ export async function uploadImage(imageUri: string) {
 
   formData.append("file", imageFile, `school-booth-${Date.now()}.jpg`);
 
-  const response = await fetch(`${getApiBaseUrl()}/upload-image`, {
+  const response = await apiRequest("/upload-image", {
     method: "POST",
     body: formData,
   });
@@ -44,11 +86,14 @@ export async function uploadImage(imageUri: string) {
     );
   }
 
-  return (await response.json()) as ImageUploadResponse;
+  return readJson<ImageUploadResponse>(
+    response,
+    "The server returned an invalid upload response.",
+  );
 }
 
 export async function getImages(signal?: AbortSignal) {
-  const response = await fetch(`${getApiBaseUrl()}/list-of-image`, { signal });
+  const response = await apiRequest("/list-of-image", { signal });
 
   if (!response.ok) {
     throw new Error(
@@ -56,7 +101,10 @@ export async function getImages(signal?: AbortSignal) {
     );
   }
 
-  return (await response.json()) as ImageListItemResponse[];
+  return readJson<ImageListItemResponse[]>(
+    response,
+    "The server returned an invalid image list response.",
+  );
 }
 
 export function getImageUrl(imageUrl: string) {

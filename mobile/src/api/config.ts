@@ -7,5 +7,11 @@ export function getApiBaseUrl() {
     );
   }
 
+  if (!apiUrl.startsWith("http://") && !apiUrl.startsWith("https://")) {
+    throw new Error(
+      "EXPO_PUBLIC_API_URL must start with http:// or https://.",
+    );
+  }
+
   return apiUrl;
 }
