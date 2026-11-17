@@ -94,6 +94,8 @@ function AboutPage() {
               <img
                 src={aboutHeroImage}
                 alt="A Good Vibes photo strip with smiling students, playful doodles, and a blue camera"
+                width={1223}
+                height={1286}
               />
             </div>
           </div>

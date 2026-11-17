@@ -1,4 +1,8 @@
-.about-site {
+.site-shell.about-site {
+  min-height: 100svh;
+  height: auto;
+  overflow-x: clip;
+  overflow-y: visible;
   background:
     radial-gradient(circle at 77% 34%, rgba(219, 238, 255, 0.52), transparent 32%),
     #fbfdff;
@@ -9,25 +13,21 @@
   z-index: 2;
   flex: 1 1 auto;
   min-height: 0;
-  padding: clamp(20px, 3.5svh, 36px) clamp(30px, 4.5vw, 70px) clamp(24px, 3svh, 32px);
+  padding: clamp(32px, 5vw, 72px) clamp(24px, 4.5vw, 70px) clamp(44px, 6vw, 80px);
 }
 
 .about-container {
   width: min(100%, 1400px);
-  height: 100%;
-  min-height: 0;
   margin: 0 auto;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: clamp(20px, 2.8svh, 30px);
+  gap: clamp(40px, 5vw, 70px);
 }
 
 .about-hero-layout {
-  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(600px, 1.08fr) minmax(500px, 0.92fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.82fr);
   align-items: center;
-  gap: clamp(20px, 3vw, 46px);
+  gap: clamp(32px, 5vw, 74px);
 }
 
 .about-copy {
@@ -49,18 +49,21 @@
 }
 
 .about-copy h1 {
+  max-width: 850px;
   margin: 0;
   color: var(--navy);
-  font-size: clamp(3rem, 4.25vw, 4.15rem);
+  font-size: clamp(2.85rem, 4.4vw, 4.25rem);
   font-weight: 950;
-  line-height: 0.98;
+  line-height: 1;
   letter-spacing: -0.055em;
+  text-wrap: balance;
 }
 
 .about-title-row {
   margin-top: 7px;
   color: var(--blue);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 16px;
 }
@@ -76,28 +79,33 @@
 
 .about-description {
   max-width: 725px;
-  margin: clamp(20px, 2.7svh, 28px) 0 clamp(28px, 4svh, 42px);
+  margin: clamp(22px, 2.7vw, 32px) 0 clamp(30px, 4vw, 46px);
   color: #5f73a0;
-  font-size: clamp(1.08rem, 1.55vw, 1.42rem);
+  font-size: clamp(1.05rem, 1.5vw, 1.32rem);
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.5;
 }
 
 .about-features {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
+  gap: clamp(12px, 1.5vw, 20px);
 }
 
 .about-feature {
   min-width: 0;
+  padding: clamp(18px, 2vw, 24px) 14px;
+  border: 1px solid #dceaf8;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 28px rgba(20, 67, 126, 0.06);
   text-align: center;
 }
 
 .about-feature-icon {
   width: clamp(76px, 7.2vw, 100px);
   height: clamp(76px, 7.2vw, 100px);
-  margin: 0 auto 14px;
+  margin: 0 auto 16px;
   display: grid;
   place-items: center;
   border-radius: 17px;
@@ -137,21 +145,19 @@
   margin: 0 auto;
   color: #5f73a0;
   font-size: clamp(0.78rem, 1.05vw, 0.98rem);
-  line-height: 1.3;
+  line-height: 1.45;
 }
 
 .about-art {
   min-width: 0;
-  height: 100%;
-  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .about-art img {
-  width: 100%;
-  height: 100%;
+  width: min(100%, 580px);
+  height: auto;
   max-height: 610px;
   display: block;
   object-fit: contain;
@@ -159,19 +165,20 @@
 }
 
 .about-values {
-  min-height: clamp(112px, 13.5svh, 140px);
+  min-height: 140px;
+  padding: 18px 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
   border: 1px solid #d7e9fa;
-  border-radius: 19px;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 5px 14px rgba(30, 76, 134, 0.035);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 14px 36px rgba(30, 76, 134, 0.07);
 }
 
 .about-value {
   min-width: 0;
-  min-height: 78px;
+  min-height: 92px;
   padding: 0 clamp(24px, 3.1vw, 48px);
   display: flex;
   align-items: center;
@@ -211,7 +218,7 @@
   margin: 0;
   color: #5f73a0;
   font-size: clamp(0.82rem, 1.08vw, 1rem);
-  line-height: 1.3;
+  line-height: 1.45;
 }
 
 .about-footer {
@@ -263,8 +270,8 @@
   }
 
   .about-hero-layout {
-    grid-template-columns: minmax(500px, 1.08fr) minmax(390px, 0.92fr);
-    gap: 12px;
+    grid-template-columns: minmax(0, 1fr) minmax(310px, 0.72fr);
+    gap: 28px;
   }
 
   .about-copy h1 {
@@ -276,7 +283,8 @@
   }
 
   .about-features {
-    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
   }
 
   .about-value {
@@ -287,13 +295,12 @@
 
 @media (max-width: 900px) {
   .about-main {
-    padding-top: 52px;
-    padding-bottom: 32px;
+    padding-top: 48px;
+    padding-bottom: 64px;
   }
 
   .about-container {
-    height: auto;
-    display: block;
+    gap: 54px;
   }
 
   .about-hero-layout {
@@ -334,9 +341,6 @@
     height: auto;
   }
 
-  .about-values {
-    margin-top: 58px;
-  }
 }
 
 @media (max-width: 720px) {
@@ -377,12 +381,53 @@
 }
 
 @media (max-width: 520px) {
+  .about-main {
+    padding: 38px 16px 54px;
+  }
+
+  .about-container {
+    gap: 42px;
+  }
+
+  .about-hero-layout {
+    gap: 36px;
+  }
+
+  .about-label {
+    margin-bottom: 18px;
+    padding: 7px 13px;
+    font-size: 0.75rem;
+  }
+
   .about-copy h1 {
-    font-size: clamp(2.25rem, 11vw, 3.1rem);
+    font-size: clamp(2.15rem, 11vw, 3.1rem);
+    letter-spacing: -0.045em;
+  }
+
+  .about-title-row {
+    gap: 10px;
+  }
+
+  .about-title-heart {
+    width: 40px;
   }
 
   .about-description {
     font-size: 1rem;
+  }
+
+  .about-feature {
+    border-radius: 16px;
+  }
+
+  .about-values {
+    padding-right: 16px;
+    padding-left: 16px;
+    border-radius: 20px;
+  }
+
+  .about-site .nav-item {
+    min-height: 44px;
   }
 
   .about-footer-inner {
@@ -392,6 +437,415 @@
     justify-content: center;
     gap: 7px;
     text-align: center;
+  }
+}
+
+@media (max-width: 390px) {
+  .about-features {
+    grid-template-columns: 1fr;
+  }
+
+  .about-feature {
+    width: min(100%, 300px);
+    margin: 0 auto;
+  }
+
+  .about-value {
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .about-value-icon {
+    width: 58px;
+    height: 58px;
+  }
+}
+
+/* Fit standard desktop and laptop viewports without clipping content. */
+@media (min-width: 901px) and (min-height: 700px) {
+  .site-shell.about-site {
+    height: 100svh;
+    overflow: hidden;
+  }
+
+  .about-main {
+    padding-top: clamp(14px, 2.4svh, 26px);
+    padding-bottom: clamp(14px, 2.4svh, 26px);
+  }
+
+  .about-container {
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: clamp(12px, 2svh, 22px);
+  }
+
+  .about-hero-layout {
+    min-height: 0;
+    gap: clamp(20px, 3vw, 48px);
+  }
+
+  .about-label {
+    margin-bottom: clamp(10px, 1.8svh, 20px);
+    padding: 7px 15px;
+  }
+
+  .about-copy h1 {
+    font-size: clamp(2.35rem, 6.8svh, 4.1rem);
+  }
+
+  .about-description {
+    margin-top: clamp(12px, 2svh, 22px);
+    margin-bottom: clamp(14px, 2.6svh, 28px);
+    font-size: clamp(0.94rem, 1.85svh, 1.2rem);
+    line-height: 1.4;
+  }
+
+  .about-features {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(8px, 1.1vw, 15px);
+  }
+
+  .about-feature {
+    padding: clamp(10px, 1.6svh, 18px) 10px;
+    border-radius: 16px;
+  }
+
+  .about-feature-icon {
+    width: clamp(48px, 7.8svh, 76px);
+    height: clamp(48px, 7.8svh, 76px);
+    margin-bottom: clamp(7px, 1.3svh, 12px);
+    border-radius: 14px;
+  }
+
+  .about-feature h2 {
+    margin-bottom: 4px;
+    font-size: clamp(0.78rem, 1.65svh, 1rem);
+  }
+
+  .about-feature p {
+    font-size: clamp(0.68rem, 1.35svh, 0.86rem);
+    line-height: 1.3;
+  }
+
+  .about-art {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .about-art img {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+  }
+
+  .about-values {
+    min-height: clamp(82px, 12svh, 118px);
+    padding: clamp(7px, 1.2svh, 12px) 0;
+    border-radius: 18px;
+  }
+
+  .about-value {
+    min-height: 68px;
+    padding: 0 clamp(16px, 2.2vw, 34px);
+    gap: clamp(10px, 1.5vw, 20px);
+  }
+
+  .about-value-icon {
+    width: clamp(48px, 7svh, 68px);
+    height: clamp(48px, 7svh, 68px);
+  }
+
+  .about-value h2 {
+    margin-bottom: 4px;
+    font-size: clamp(0.85rem, 1.65svh, 1.05rem);
+  }
+
+  .about-value p {
+    font-size: clamp(0.72rem, 1.35svh, 0.88rem);
+    line-height: 1.3;
+  }
+
+  .about-footer {
+    --footer-wave-height: clamp(18px, 3svh, 30px);
+    min-height: clamp(52px, 7svh, 68px);
+  }
+}
+
+/* Use the tablet width efficiently instead of stacking every section. */
+@media (min-width: 521px) and (max-width: 900px) and (min-height: 800px) {
+  .site-shell.about-site {
+    height: 100svh;
+    overflow: hidden;
+  }
+
+  .about-main {
+    padding: 16px 24px 18px;
+  }
+
+  .about-container {
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .about-hero-layout {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(210px, 0.85fr);
+    align-items: center;
+    gap: 18px;
+  }
+
+  .about-copy {
+    width: 100%;
+    text-align: left;
+  }
+
+  .about-label {
+    margin: 0 0 10px;
+    padding: 6px 12px;
+    font-size: 0.72rem;
+  }
+
+  .about-copy h1 {
+    font-size: clamp(2rem, 5vw, 2.7rem);
+  }
+
+  .about-title-row {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .about-title-heart {
+    width: 38px;
+  }
+
+  .about-description {
+    margin: 12px 0 15px;
+    font-size: 0.88rem;
+    line-height: 1.35;
+  }
+
+  .about-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .about-feature {
+    padding: 9px 7px;
+    border-radius: 13px;
+  }
+
+  .about-feature-icon {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 6px;
+    border-radius: 11px;
+  }
+
+  .about-feature h2 {
+    margin-bottom: 3px;
+    font-size: 0.78rem;
+  }
+
+  .about-feature p {
+    font-size: 0.68rem;
+    line-height: 1.25;
+  }
+
+  .about-art {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .about-art img {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+  }
+
+  .about-values {
+    min-height: 82px;
+    padding: 7px 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-radius: 16px;
+  }
+
+  .about-value {
+    width: auto;
+    min-height: 64px;
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  .about-value + .about-value {
+    border-top: 0;
+    border-left: 1px solid #d4e7f8;
+  }
+
+  .about-value-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .about-value h2 {
+    margin-bottom: 3px;
+    font-size: 0.78rem;
+  }
+
+  .about-value p {
+    font-size: 0.67rem;
+    line-height: 1.25;
+  }
+
+  .about-footer {
+    --footer-wave-height: 20px;
+    min-height: 56px;
+  }
+
+  .about-footer-inner {
+    min-height: inherit;
+  }
+}
+
+/* Compact portrait phones that have enough height for the complete page. */
+@media (max-width: 520px) and (min-height: 800px) {
+  .site-shell.about-site {
+    height: 100svh;
+    overflow: hidden;
+  }
+
+  .about-main {
+    padding: 10px 14px 12px;
+  }
+
+  .about-container {
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .about-hero-layout {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(76px, 1fr);
+    gap: 7px;
+  }
+
+  .about-label {
+    margin-bottom: 7px;
+    padding: 5px 11px;
+    font-size: 0.68rem;
+  }
+
+  .about-copy h1 {
+    font-size: clamp(1.8rem, 8.5vw, 2.25rem);
+    line-height: 0.98;
+  }
+
+  .about-title-row {
+    margin-top: 3px;
+    gap: 8px;
+  }
+
+  .about-title-heart {
+    width: 32px;
+  }
+
+  .about-description {
+    margin: 8px auto 10px;
+    font-size: 0.8rem;
+    line-height: 1.3;
+  }
+
+  .about-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .about-feature {
+    width: auto;
+    padding: 7px 5px;
+    border-radius: 12px;
+  }
+
+  .about-feature-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 5px;
+    border-radius: 9px;
+  }
+
+  .about-feature h2 {
+    margin-bottom: 2px;
+    font-size: 0.74rem;
+  }
+
+  .about-feature p {
+    font-size: 0.65rem;
+    line-height: 1.2;
+  }
+
+  .about-art {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .about-art img {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+  }
+
+  .about-values {
+    min-height: 0;
+    padding: 4px 10px;
+    border-radius: 14px;
+  }
+
+  .about-value {
+    min-height: 40px;
+    padding: 5px 2px;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .about-value-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .about-value h2 {
+    margin-bottom: 2px;
+    font-size: 0.73rem;
+  }
+
+  .about-value p {
+    max-width: none;
+    font-size: 0.64rem;
+    line-height: 1.2;
+  }
+
+  .about-footer {
+    --footer-wave-height: 15px;
+    min-height: 48px;
+  }
+
+  .about-footer-inner {
+    min-height: inherit;
+    padding: 6px 0;
+    gap: 1px;
+    font-size: 0.68rem;
+  }
+
+  .about-footer-inner span {
+    font-size: 0.9rem;
   }
 }
 
