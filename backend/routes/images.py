@@ -127,3 +127,25 @@ def get_image(
         raise HTTPException(status_code=404, detail="Image not found.")
 
     return Response(content=image.image_data, media_type=image.content_type)
+
+
+@router.delete("/image/{image_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_image(
+    image_id: int,
+    db: Session = Depends(get_db),
+) -> Response:
+    try:
+        image = db.get(Image, image_id)
+
+        if image is None:
+            raise HTTPException(status_code=404, detail="Image not found.")
+
+        db.delete(image)
+        db.commit()
+    except HTTPException:
+        raise
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Unable to delete the image.")
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

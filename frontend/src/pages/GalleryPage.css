@@ -289,8 +289,10 @@
 
 .preview-panel {
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
   border: 1px solid #d9e9f8;
   border-radius: 14px;
   background: rgba(248, 252, 255, 0.9);
@@ -325,18 +327,26 @@
 }
 
 .preview-image-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 80px;
   margin: 12px 0 16px;
   display: flex;
+  align-items: center;
   justify-content: center;
+  overflow: hidden;
+  border-radius: 9px;
+  background: #eef4fb;
 }
 
 .preview-image-wrap img {
-  width: min(100%, 310px);
-  max-height: clamp(310px, 49svh, 470px);
-  aspect-ratio: 3 / 4;
+  position: absolute;
+  inset: 8px;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
   display: block;
   border-radius: 9px;
-  object-fit: cover;
+  object-fit: contain;
   box-shadow: 0 6px 16px rgba(16, 57, 105, 0.13);
 }
 
@@ -395,6 +405,12 @@
   font-weight: 750;
   text-decoration: none;
   cursor: pointer;
+}
+
+.download-button:disabled,
+.delete-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .download-button {
@@ -483,32 +499,71 @@
 }
 
 .gallery-photo-preview-dialog {
-  position: relative;
-  width: min(100%, 680px);
+  width: min(100%, 820px);
+  height: min(92svh, 820px);
   max-height: calc(100svh - 48px);
   padding: 16px;
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  overflow: hidden;
   border-radius: 18px;
   background: #fff;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
 }
 
-.gallery-photo-preview-dialog img {
-  width: auto;
-  max-width: 100%;
-  height: auto;
-  max-height: calc(100svh - 80px);
+.gallery-photo-preview-header {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.gallery-photo-preview-header > div {
+  min-width: 0;
+}
+
+.gallery-photo-preview-header h2 {
+  margin: 0 0 3px;
+  color: var(--navy);
+  font-size: 1.15rem;
+  line-height: 1.15;
+}
+
+.gallery-photo-preview-header p {
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gallery-photo-preview-image-wrap {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #eef4fb;
+}
+
+.gallery-photo-preview-image-wrap img {
+  position: absolute;
+  inset: 10px;
+  width: calc(100% - 20px);
+  height: calc(100% - 20px);
   display: block;
   border-radius: 10px;
   object-fit: contain;
 }
 
 .gallery-photo-preview-close {
-  position: absolute;
-  z-index: 1;
-  top: 24px;
-  right: 24px;
+  flex: 0 0 auto;
   width: 44px;
   height: 44px;
   padding: 0;
@@ -524,6 +579,18 @@
 
 .gallery-photo-preview-close:hover {
   background: var(--blue);
+}
+
+.gallery-photo-preview-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.gallery-delete-error {
+  margin-top: 14px !important;
+  color: #c9363c !important;
+  font-weight: 700;
 }
 
 .gallery-footer {
@@ -651,9 +718,9 @@
     margin-top: 12px;
   }
 
-  .preview-image-wrap img {
-    width: min(100%, 340px);
-    max-height: none;
+  .preview-image-wrap {
+    flex: 0 0 auto;
+    height: min(60svh, 620px);
   }
 }
 
@@ -704,18 +771,36 @@
   }
 
   .gallery-photo-preview-dialog {
+    height: calc(100svh - 28px);
     max-height: calc(100svh - 28px);
     padding: 10px;
+    gap: 8px;
     border-radius: 14px;
   }
 
-  .gallery-photo-preview-dialog img {
-    max-height: calc(100svh - 48px);
+  .gallery-photo-preview-image-wrap {
+    padding: 0;
+  }
+
+  .gallery-photo-preview-image-wrap img {
+    inset: 6px;
+    width: calc(100% - 12px);
+    height: calc(100% - 12px);
   }
 
   .gallery-photo-preview-close {
-    top: 18px;
-    right: 18px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .gallery-photo-preview-actions {
+    gap: 8px;
+  }
+
+  .gallery-photo-preview-actions .download-button,
+  .gallery-photo-preview-actions .delete-button {
+    min-height: 48px;
+    font-size: 0.82rem;
   }
 
   .gallery-footer-content {

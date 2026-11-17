@@ -12,6 +12,8 @@ import {
   TrashIcon,
 } from "../components/icons";
 import {
+  deleteImage,
+  downloadImage,
   getImages,
   getImageUrl,
   type ImageListItemResponse,
@@ -29,6 +31,12 @@ interface GalleryPhoto {
   width: number;
   height: number;
   format: string;
+}
+
+interface GalleryNotification {
+  variant: "success" | "warning";
+  title: string;
+  message: string;
 }
 
 const templateOptions = [
@@ -96,6 +104,15 @@ function GalleryPage() {
   const [isPreviewClosing, setIsPreviewClosing] = useState(false);
   const [isDeleteNoticeOpen, setIsDeleteNoticeOpen] = useState(false);
   const [isDeleteNoticeClosing, setIsDeleteNoticeClosing] = useState(false);
+  const [deletePhotoId, setDeletePhotoId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [downloadingPhotoId, setDownloadingPhotoId] = useState<number | null>(
+    null,
+  );
+  const [notification, setNotification] =
+    useState<GalleryNotification | null>(null);
+  const [isNotificationClosing, setIsNotificationClosing] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -165,7 +182,7 @@ function GalleryPage() {
     }
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && !isDeleting) {
         setIsDeleteNoticeClosing(true);
       }
     }
@@ -173,7 +190,7 @@ function GalleryPage() {
     window.addEventListener("keydown", handleKeyDown);
 
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isDeleteNoticeOpen]);
+  }, [isDeleteNoticeOpen, isDeleting]);
 
   useEffect(() => {
     if (!isDeleteNoticeClosing) {
@@ -183,10 +200,49 @@ function GalleryPage() {
     const timerId = window.setTimeout(() => {
       setIsDeleteNoticeOpen(false);
       setIsDeleteNoticeClosing(false);
+      setDeletePhotoId(null);
+      setDeleteError("");
     }, 180);
 
     return () => window.clearTimeout(timerId);
   }, [isDeleteNoticeClosing]);
+
+  useEffect(() => {
+    if (notification === null) {
+      return;
+    }
+
+    const timerId = window.setTimeout(
+      () => setIsNotificationClosing(true),
+      3_000,
+    );
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsNotificationClosing(true);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.clearTimeout(timerId);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [notification]);
+
+  useEffect(() => {
+    if (!isNotificationClosing) {
+      return;
+    }
+
+    const timerId = window.setTimeout(() => {
+      setNotification(null);
+      setIsNotificationClosing(false);
+    }, 180);
+
+    return () => window.clearTimeout(timerId);
+  }, [isNotificationClosing]);
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const filteredPhotos = photos.filter((photo) => {
@@ -207,6 +263,8 @@ function GalleryPage() {
     null;
   const previewPhoto =
     photos.find((photo) => photo.id === previewPhotoId) ?? null;
+  const deletePhoto =
+    photos.find((photo) => photo.id === deletePhotoId) ?? null;
 
   function togglePhotoSelection(photoId: number) {
     setSelectedPhotoIds((currentIds) => {
@@ -252,13 +310,133 @@ function GalleryPage() {
     });
   }
 
-  function handleDeletePhoto() {
+  function showNotification(nextNotification: GalleryNotification) {
+    setIsNotificationClosing(false);
+    setNotification(nextNotification);
+  }
+
+  function closeNotification() {
+    setIsNotificationClosing(true);
+  }
+
+  async function handleDownloadPhoto(photo: GalleryPhoto) {
+    if (downloadingPhotoId !== null) {
+      return;
+    }
+
+    setDownloadingPhotoId(photo.id);
+
+    try {
+      const imageBlob = await downloadImage(photo.id);
+      const objectUrl = URL.createObjectURL(imageBlob);
+      const downloadLink = document.createElement("a");
+
+      downloadLink.href = objectUrl;
+      downloadLink.download = photo.fileName;
+      document.body.append(downloadLink);
+      downloadLink.click();
+      downloadLink.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1_000);
+
+      showNotification({
+        variant: "success",
+        title: "Download Started",
+        message: `${photo.fileName} is being downloaded in its original quality.`,
+      });
+    } catch {
+      showNotification({
+        variant: "warning",
+        title: "Download Failed",
+        message: "Unable to download this image. Please try again.",
+      });
+    } finally {
+      setDownloadingPhotoId(null);
+    }
+  }
+
+  function handleDeletePhoto(photo: GalleryPhoto) {
+    setDeletePhotoId(photo.id);
+    setDeleteError("");
     setIsDeleteNoticeClosing(false);
     setIsDeleteNoticeOpen(true);
   }
 
   function closeDeleteNotice() {
+    if (isDeleting) {
+      return;
+    }
+
     setIsDeleteNoticeClosing(true);
+  }
+
+  async function confirmDeletePhoto() {
+    if (deletePhoto === null || isDeleting) {
+      return;
+    }
+
+    const deletedPhoto = deletePhoto;
+
+    setIsDeleting(true);
+    setDeleteError("");
+
+    try {
+      await deleteImage(deletedPhoto.id);
+
+      setPhotos((currentPhotos) =>
+        currentPhotos.filter((photo) => photo.id !== deletedPhoto.id),
+      );
+      setSelectedPhotoIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+        nextIds.delete(deletedPhoto.id);
+        return nextIds;
+      });
+      setActivePhotoId(null);
+      setPreviewPhotoId(null);
+      setIsPreviewClosing(false);
+      setIsDeleteNoticeOpen(false);
+      setDeletePhotoId(null);
+      setReloadCount((count) => count + 1);
+
+      showNotification({
+        variant: "success",
+        title: "Photo Deleted",
+        message: `${deletedPhoto.fileName} was deleted successfully.`,
+      });
+    } catch {
+      setDeleteError("Unable to delete this image. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  function renderPhotoActions(
+    photo: GalleryPhoto,
+    className = "preview-actions",
+  ) {
+    const isDownloading = downloadingPhotoId === photo.id;
+
+    return (
+      <div className={className}>
+        <button
+          className="download-button"
+          type="button"
+          onClick={() => void handleDownloadPhoto(photo)}
+          disabled={downloadingPhotoId !== null}
+        >
+          <DownloadIcon />
+          {isDownloading ? "Downloading..." : "Download Image"}
+        </button>
+        <button
+          className="delete-button"
+          type="button"
+          onClick={() => handleDeletePhoto(photo)}
+          disabled={isDeleting}
+        >
+          <TrashIcon />
+          Delete
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -438,24 +616,7 @@ function GalleryPage() {
                   </div>
                 </dl>
 
-                <div className="preview-actions">
-                  <a
-                    className="download-button"
-                    href={activePhoto.image}
-                    download={activePhoto.fileName}
-                  >
-                    <DownloadIcon />
-                    Download Image
-                  </a>
-                  <button
-                    className="delete-button"
-                    type="button"
-                    onClick={handleDeletePhoto}
-                  >
-                    <TrashIcon />
-                    Delete
-                  </button>
-                </div>
+                {renderPhotoActions(activePhoto)}
               </>
             ) : (
               <div className="preview-empty-state">
@@ -484,22 +645,31 @@ function GalleryPage() {
             aria-labelledby="gallery-photo-preview-title"
             onMouseDown={(event) => event.stopPropagation()}
           >
-            <h2 className="sr-only" id="gallery-photo-preview-title">
-              Preview {previewPhoto.title}
-            </h2>
-            <button
-              className="gallery-photo-preview-close"
-              type="button"
-              onClick={closePhotoPreview}
-              aria-label="Close photo preview"
-              autoFocus
-            >
-              ×
-            </button>
-            <img
-              src={previewPhoto.image}
-              alt={`${previewPhoto.title} enlarged preview`}
-            />
+            <div className="gallery-photo-preview-header">
+              <div>
+                <h2 id="gallery-photo-preview-title">{previewPhoto.title}</h2>
+                <p>{previewPhoto.fileName}</p>
+              </div>
+              <button
+                className="gallery-photo-preview-close"
+                type="button"
+                onClick={closePhotoPreview}
+                aria-label="Close photo preview"
+                autoFocus
+              >
+                ×
+              </button>
+            </div>
+            <div className="gallery-photo-preview-image-wrap">
+              <img
+                src={previewPhoto.image}
+                alt={`${previewPhoto.title} enlarged preview`}
+              />
+            </div>
+            {renderPhotoActions(
+              previewPhoto,
+              "gallery-photo-preview-actions",
+            )}
           </section>
         </div>
       )}
@@ -513,7 +683,7 @@ function GalleryPage() {
           onMouseDown={closeDeleteNotice}
         >
           <section
-            className="notification-modal notification-modal-info modal-animated-content"
+            className="notification-modal notification-modal-warning modal-animated-content"
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-notice-title"
@@ -524,7 +694,8 @@ function GalleryPage() {
               className="notification-modal-close"
               type="button"
               onClick={closeDeleteNotice}
-              aria-label="Close notification"
+              aria-label="Close delete confirmation"
+              disabled={isDeleting}
             >
               ×
             </button>
@@ -535,13 +706,79 @@ function GalleryPage() {
 
             <h2 id="delete-notice-title">Delete Photo</h2>
             <p id="delete-notice-message">
-              This feature will be implemented in a future update.
+              Delete {deletePhoto?.fileName ?? "this photo"}? This action cannot
+              be undone.
             </p>
+
+            {deleteError && (
+              <p className="gallery-delete-error" role="alert">
+                {deleteError}
+              </p>
+            )}
+
+            <div className="notification-modal-actions">
+              <button
+                className="notification-modal-button notification-modal-button-secondary"
+                type="button"
+                onClick={closeDeleteNotice}
+                disabled={isDeleting}
+                autoFocus
+              >
+                Cancel
+              </button>
+              <button
+                className="notification-modal-button notification-modal-button-danger"
+                type="button"
+                onClick={() => void confirmDeletePhoto()}
+                disabled={isDeleting || deletePhoto === null}
+              >
+                {isDeleting ? "Deleting..." : "Delete Photo"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {notification !== null && (
+        <div
+          className={`notification-modal-backdrop modal-animated-backdrop ${
+            isNotificationClosing ? "is-closing" : ""
+          }`}
+          role="presentation"
+          onMouseDown={closeNotification}
+        >
+          <section
+            className={`notification-modal notification-modal-${notification.variant} modal-animated-content`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gallery-notification-title"
+            aria-describedby="gallery-notification-message"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              className="notification-modal-close"
+              type="button"
+              onClick={closeNotification}
+              aria-label="Close notification"
+            >
+              ×
+            </button>
+
+            <div className="notification-modal-icon" aria-hidden="true">
+              {notification.variant === "success" ? (
+                <CheckIcon />
+              ) : (
+                <InfoIcon />
+              )}
+            </div>
+
+            <h2 id="gallery-notification-title">{notification.title}</h2>
+            <p id="gallery-notification-message">{notification.message}</p>
 
             <button
               className="notification-modal-button"
               type="button"
-              onClick={closeDeleteNotice}
+              onClick={closeNotification}
               autoFocus
             >
               Okay

@@ -35,6 +35,26 @@ export async function uploadImage(file: File): Promise<void> {
   }
 }
 
+export async function downloadImage(imageId: number): Promise<Blob> {
+  const response = await fetch(`${API_URL}/image/${imageId}`);
+
+  if (!response.ok) {
+    throw new Error("Unable to download the image.");
+  }
+
+  return response.blob();
+}
+
+export async function deleteImage(imageId: number): Promise<void> {
+  const response = await fetch(`${API_URL}/image/${imageId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to delete the image.");
+  }
+}
+
 export function getImageUrl(imagePath: string): string {
   return `${API_URL}${imagePath}`;
 }
