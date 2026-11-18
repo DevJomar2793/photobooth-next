@@ -57,6 +57,33 @@ In the output, you'll find options to open the app in a
 Use a public HTTPS API URL for production builds. The local HTTP address is only
 for development on a trusted local network.
 
+## Build an installable Android APK
+
+The production build reads `EXPO_PUBLIC_API_URL` from the Expo `production`
+environment. Add the public HTTPS FastAPI address before starting a build:
+
+```bash
+npx eas-cli@latest env:set production --name EXPO_PUBLIC_API_URL --value https://YOUR_API_DOMAIN --visibility plaintext
+```
+
+Check the project before building:
+
+```bash
+npx expo-doctor
+npx tsc --noEmit
+npx expo lint
+```
+
+Then create a standalone APK that can be installed without Expo Go:
+
+```bash
+npx eas-cli@latest build --platform android --profile production-apk
+```
+
+Download the APK from the build URL and install it on an Android device. Test
+the camera, four-photo capture flow, templates, upload, Gallery, download, and
+delete features against the production backend.
+
 You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
 ## Get a fresh project

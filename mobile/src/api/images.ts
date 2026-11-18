@@ -48,7 +48,9 @@ async function apiRequest(path: string, options: RequestInit = {}) {
     }
 
     throw new Error(
-      `Could not connect to the server at ${apiUrl}. Make sure FastAPI is running and your device is on the same Wi-Fi network.`,
+      __DEV__
+        ? `Could not connect to the server at ${apiUrl}. Make sure FastAPI is running and your device is on the same Wi-Fi network.`
+        : "Could not connect to the image service. Check your internet connection and try again.",
     );
   }
 }
@@ -107,6 +109,18 @@ export async function getImages(signal?: AbortSignal) {
     response,
     "The server returned an invalid image list response.",
   );
+}
+
+export async function deleteImage(imageId: number) {
+  const response = await apiRequest(`/image/${imageId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await getApiError(response, "Unable to delete the image. Please try again."),
+    );
+  }
 }
 
 export function getImageUrl(imageUrl: string) {

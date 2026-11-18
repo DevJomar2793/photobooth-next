@@ -1,10 +1,14 @@
+import { File, Paths } from "expo-file-system";
+import * as MediaLibrary from "expo-media-library";
 import { useFocusEffect } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
+  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -13,7 +17,12 @@ import {
   View,
 } from "react-native";
 
-import { getImages, getImageUrl, type ImageListItemResponse } from "@/api/images";
+import {
+  deleteImage,
+  getImages,
+  getImageUrl,
+  type ImageListItemResponse,
+} from "@/api/images";
 import GalleryFilterModal from "@/components/GalleryFilterModal";
 import GalleryImagePreviewModal from "@/components/GalleryImagePreviewModal";
 import PageFooter from "@/components/PageFooter";
@@ -108,6 +117,7 @@ export default function GalleryScreen() {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState<ImageListItemResponse | null>(null);
+  const [previewAction, setPreviewAction] = useState<"download" | "delete" | null>(null);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedImageIds, setSelectedImageIds] = useState<Set<number>>(new Set());
 
@@ -196,6 +206,107 @@ export default function GalleryScreen() {
       }
       return nextIds;
     });
+  };
+
+  const handleDownloadImage = async () => {
+    if (!previewImage || previewAction) return;
+
+    setPreviewAction("download");
+    let downloadedFile: File | null = null;
+
+    try {
+      const currentPermission = await MediaLibrary.getPermissionsAsync(true, []);
+      const permission = currentPermission.granted
+        ? currentPermission
+        : await MediaLibrary.requestPermissionsAsync(true, []);
+
+      if (!permission.granted) {
+        if (!permission.canAskAgain) {
+          Alert.alert(
+            "Photo Access Required",
+            "Enable photo access in your device settings to download this image.",
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Open Settings", onPress: () => void Linking.openSettings() },
+            ],
+          );
+        } else {
+          Alert.alert(
+            "Permission Not Granted",
+            "Photo access is required to download the image to your phone.",
+          );
+        }
+        return;
+      }
+
+      const extension = previewImage.content_type === "image/png" ? "png" : "jpg";
+      const destination = new File(
+        Paths.cache,
+        `school-booth-${previewImage.id}.${extension}`,
+      );
+      downloadedFile = await File.downloadFileAsync(
+        getImageUrl(previewImage.image_url),
+        destination,
+        { idempotent: true },
+      );
+      await MediaLibrary.Asset.create(downloadedFile.uri);
+
+      Alert.alert("Download Complete", "The image was saved to your device gallery.");
+    } catch {
+      Alert.alert("Download Failed", "Unable to download the image. Please try again.");
+    } finally {
+      try {
+        if (downloadedFile?.exists) downloadedFile.delete();
+      } finally {
+        setPreviewAction(null);
+      }
+    }
+  };
+
+  const handleDeleteImage = () => {
+    if (!previewImage || previewAction) return;
+
+    Alert.alert(
+      "Delete Image?",
+      "This permanently removes the image from the School Booth gallery.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => void confirmDeleteImage(),
+        },
+      ],
+    );
+  };
+
+  const confirmDeleteImage = async () => {
+    if (!previewImage || previewAction) return;
+
+    const imageId = previewImage.id;
+    setPreviewAction("delete");
+
+    try {
+      await deleteImage(imageId);
+      setImages((currentImages) =>
+        currentImages.filter((image) => image.id !== imageId),
+      );
+      setSelectedImageIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+        nextIds.delete(imageId);
+        return nextIds;
+      });
+      setPreviewImage(null);
+      Alert.alert("Image Deleted", "The image was removed from the gallery.");
+    } catch (deleteError) {
+      const message =
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Unable to delete the image. Please try again.";
+      Alert.alert("Delete Failed", message);
+    } finally {
+      setPreviewAction(null);
+    }
   };
 
   const renderHeader = () => (
@@ -425,7 +536,11 @@ export default function GalleryScreen() {
         accessibilityLabel={
           previewImage ? `Full-screen preview of ${previewImage.filename}` : "Photo preview"
         }
+        isDownloading={previewAction === "download"}
+        isDeleting={previewAction === "delete"}
         onClose={() => setPreviewImage(null)}
+        onDownload={() => void handleDownloadImage()}
+        onDelete={handleDeleteImage}
       />
     </>
   );

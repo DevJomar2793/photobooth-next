@@ -1,7 +1,8 @@
 {
   "expo": {
     "name": "School Booth",
-    "slug": "mobile",
+    "slug": "school-booth",
+    "owner": "devjomar",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "mobile",
@@ -11,12 +12,20 @@
       "icon": "./assets/images/app-icon.png"
     },
     "android": {
+      "package": "com.devjomar.schoolbooth",
+      "versionCode": 1,
       "icon": "./assets/images/app-icon.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-adaptive-icon.png",
         "monochromeImage": "./assets/images/android-monochrome-icon.png",
         "backgroundColor": "#061A47"
       },
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -55,6 +64,11 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e02aac85-fd3e-4934-b12e-dace69bc1034"
+      }
     }
   }
 }

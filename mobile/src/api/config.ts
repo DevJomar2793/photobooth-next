@@ -13,5 +13,11 @@ export function getApiBaseUrl() {
     );
   }
 
+  if (!__DEV__ && !apiUrl.startsWith("https://")) {
+    throw new Error(
+      "Production builds require an HTTPS API address.",
+    );
+  }
+
   return apiUrl;
 }

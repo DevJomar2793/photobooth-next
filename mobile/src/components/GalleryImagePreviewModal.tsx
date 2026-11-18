@@ -1,5 +1,13 @@
 import { SymbolView } from "expo-symbols";
-import { Image, Modal, Pressable, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors } from "@/theme";
@@ -8,15 +16,25 @@ interface GalleryImagePreviewModalProps {
   visible: boolean;
   imageUrl: string;
   accessibilityLabel: string;
+  isDownloading: boolean;
+  isDeleting: boolean;
   onClose: () => void;
+  onDownload: () => void;
+  onDelete: () => void;
 }
 
 export default function GalleryImagePreviewModal({
   visible,
   imageUrl,
   accessibilityLabel,
+  isDownloading,
+  isDeleting,
   onClose,
+  onDownload,
+  onDelete,
 }: GalleryImagePreviewModalProps) {
+  const isBusy = isDownloading || isDeleting;
+
   return (
     <Modal
       visible={visible}
@@ -55,6 +73,62 @@ export default function GalleryImagePreviewModal({
           resizeMode="contain"
           accessibilityLabel={accessibilityLabel}
         />
+
+        <View style={styles.actions}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.actionButton,
+              styles.downloadButton,
+              pressed && styles.pressed,
+              isBusy && styles.disabled,
+            ]}
+            disabled={isBusy}
+            onPress={onDownload}
+            accessibilityRole="button"
+            accessibilityLabel="Download image to device gallery"
+            accessibilityState={{ disabled: isBusy, busy: isDownloading }}
+          >
+            {isDownloading ? (
+              <ActivityIndicator color={colors.white} />
+            ) : (
+              <SymbolView
+                name={{ ios: "arrow.down.to.line", android: "download", web: "download" }}
+                size={20}
+                tintColor={colors.white}
+              />
+            )}
+            <Text style={styles.actionButtonText}>
+              {isDownloading ? "Downloading..." : "Download"}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.actionButton,
+              styles.deleteButton,
+              pressed && styles.pressed,
+              isBusy && styles.disabled,
+            ]}
+            disabled={isBusy}
+            onPress={onDelete}
+            accessibilityRole="button"
+            accessibilityLabel="Delete image from gallery"
+            accessibilityState={{ disabled: isBusy, busy: isDeleting }}
+          >
+            {isDeleting ? (
+              <ActivityIndicator color={colors.white} />
+            ) : (
+              <SymbolView
+                name={{ ios: "trash", android: "delete", web: "delete" }}
+                size={20}
+                tintColor={colors.white}
+              />
+            )}
+            <Text style={styles.actionButtonText}>
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Text>
+          </Pressable>
+        </View>
       </SafeAreaView>
     </Modal>
   );
@@ -82,6 +156,36 @@ const styles = StyleSheet.create({
   image: {
     flex: 1,
     width: "100%",
+  },
+  actions: {
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 8,
+  },
+  actionButton: {
+    flex: 1,
+    minHeight: 50,
+    borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  downloadButton: {
+    backgroundColor: colors.blue,
+  },
+  deleteButton: {
+    backgroundColor: "#c93636",
+  },
+  actionButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  disabled: {
+    opacity: 0.55,
   },
   pressed: {
     opacity: 0.7,
